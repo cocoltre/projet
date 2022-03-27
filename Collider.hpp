@@ -33,6 +33,13 @@ public :
     bool operator> (Collider body2);
     bool operator| (Collider body2);
     bool operator> (Vec2d point);
+    Collider operator+= (Vec2d position2);
 
+    Collider& operator= (Collider const&) = default;
+    Collider (Collider const& autre);
+
+    Vec2d getPosition () const;
+    double getRadius () const;
 };
 
+std::ostream& operator<< (std::ostream& sortie, Collider const& body);

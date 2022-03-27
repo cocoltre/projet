@@ -14,6 +14,8 @@ Collider::Collider(Vec2d position, double arg_rayon) : rayon(arg_rayon) {
     centre = clamp(position.x(),position.y());
 }
 
+Collider::Collider (Collider const& autre) : centre(autre.centre), rayon(autre.rayon) {}
+
 Vec2d Collider::clamp (double x, double y) {
 
     x = fmod(x, world_width);
@@ -39,6 +41,7 @@ Vec2d Collider::directionTo (Vec2d to) {
     Vec2d to9 (to.x()-world_width, to.y()-world_height);
 
     std::array < Vec2d, 9 > L ({
+    clamp(to.x(), to.y()),
     clamp(to2.x(), to2.y()),
     clamp(to3.x(), to3.y()),
     clamp(to4.x(), to4.y()),
@@ -58,12 +61,12 @@ Vec2d Collider::directionTo (Vec2d to) {
         }
     }
 
-    return Vec2d((bon_vec.x() - centre.x()), bon_vec.y() - centre.y());
+    return Vec2d(clamp((bon_vec.x() - centre.x()), bon_vec.y() - centre.y()));
 
 }
 
-Vec2d Collider::directionTo (Collider collider_to) {
-    return directionTo (collider_to.centre);
+Vec2d Collider::directionTo (Collider to) {
+    return directionTo (to.centre);
 
 }
 
@@ -71,16 +74,21 @@ double Collider::distanceTo (Vec2d to) {
     return directionTo(to).length();
 }
 
-double Collider::distanceTo (Collider collider_to) {
-    return directionTo(collider_to).length();
+double Collider::distanceTo (Collider to) {
+    return directionTo(to).length();
 }
 
 Vec2d Collider::move (Vec2d dx) {
     return clamp(centre.x() + dx.x() , centre.y() + dx.y());
 }
 
+Collider Collider::operator+= (Vec2d position2) {
+    return Collider(move(position2), rayon);
+
+}
+
 bool Collider::isColliderInside (Collider other) {
-    if ((other.rayon >= rayon) and (distanceTo(other) <= other.rayon - rayon)) {
+    if ((rayon >= other.rayon) and (distanceTo(other) <= rayon - other.rayon)) {
         return true;
     }
     else return false;
@@ -110,4 +118,17 @@ bool Collider::operator| (Collider body2) {
 
 bool Collider::operator> (Vec2d point) {
     return (isPointInside(point));
+}
+
+Vec2d Collider::getPosition() const {
+    return centre;
+}
+
+double Collider::getRadius() const {
+    return rayon;
+}
+
+std::ostream& operator<< (std::ostream& sortie, Collider const& body) {
+    sortie << " Collider : position = " << body.getPosition() << " radius = " << body.getRadius() ;
+    return sortie;
 }
