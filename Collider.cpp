@@ -10,25 +10,29 @@
 #include <algorithm>
 #include <array>
 
-Collider::Collider(Vec2d position, double arg_rayon) : rayon(arg_rayon) {
-    centre = clamp(position.x(),position.y());
+Collider::Collider(Vec2d centre, double arg_rayon) : rayon(arg_rayon) {
+    centre = clamp(centre);
 }
 
-Vec2d Collider::clamp (double x, double y) {
+Collider::Collider (Collider const& autre) : centre(autre.centre), rayon(autre.rayon) {}
 
-    x = fmod(x, world_width);
+Vec2d Collider::clamp (const Vec2d& vec) {
+    double x (0.00);
+    double y (0.00);
+
+    x = fmod(vec.x(), world_width);
     if (x<0) {
         x += world_width;
     }
 
-    y = fmod(y, world_height);
+    y = fmod(vec.y(), world_height);
     if (y<0) {
         y += world_height;
     }
-    return Vec2d (x,y);
+    return {x,y};
 }
 
-Vec2d Collider::directionTo (Vec2d to) {
+ Vec2d Collider::directionTo (Vec2d to)  {
     Vec2d to2 (to.x(), to.y()+world_height);
     Vec2d to3 (to.x(), to.y()-world_height);
     Vec2d to4 (to.x()+world_width, to.y());
@@ -38,49 +42,44 @@ Vec2d Collider::directionTo (Vec2d to) {
     Vec2d to8 (to.x()-world_width, to.y()+world_height);
     Vec2d to9 (to.x()-world_width, to.y()-world_height);
 
-    std::array < Vec2d, 9 > L ({
-    clamp(to2.x(), to2.y()),
-    clamp(to3.x(), to3.y()),
-    clamp(to4.x(), to4.y()),
-    clamp(to5.x(), to5.y()),
-    clamp(to6.x(), to6.y()),
-    clamp(to7.x(), to7.y()),
-    clamp(to8.x(), to8.y()),
-    clamp(to9.x(), to9.y()),
-    });
+    std::array < Vec2d, 9 > L ({to,to2,to3,to4,to5,to6,to7,to8,to9});
 
     double smallest_dist (distance(centre, to));
     Vec2d bon_vec(to);
     for (int i(1); i<9; ++i) {
         if (distance(centre, L[i]) < smallest_dist) {
-            smallest_dist = distance(centre,L[i]);
+            smallest_dist = distance(centre, L[i]);
             bon_vec = L[i];
         }
     }
 
-    return Vec2d((bon_vec.x() - centre.x()), bon_vec.y() - centre.y());
+    return (bon_vec - centre);
 
 }
 
-Vec2d Collider::directionTo (Collider collider_to) {
-    return directionTo (collider_to.centre);
+Vec2d Collider::directionTo (Collider to)  {
+    return directionTo(to.centre);
 
 }
 
-double Collider::distanceTo (Vec2d to) {
+double Collider::distanceTo (Vec2d to)  {
     return directionTo(to).length();
 }
 
-double Collider::distanceTo (Collider collider_to) {
-    return directionTo(collider_to).length();
+double Collider::distanceTo (Collider to)  {
+    return directionTo(to).length();
 }
 
-Vec2d Collider::move (Vec2d dx) {
-    return clamp(centre.x() + dx.x() , centre.y() + dx.y());
+void Collider::move (const Vec2d& dx) {
+    this->centre = clamp(this->centre + dx);
+}
+
+void Collider::operator+= (Vec2d position2) {
+    move(position2);
 }
 
 bool Collider::isColliderInside (Collider other) {
-    if ((other.rayon >= rayon) and (distanceTo(other) <= other.rayon - rayon)) {
+    if ((rayon >= other.rayon) and (distanceTo(other) <= rayon - other.rayon)) {
         return true;
     }
     else return false;
@@ -110,4 +109,17 @@ bool Collider::operator| (Collider body2) {
 
 bool Collider::operator> (Vec2d point) {
     return (isPointInside(point));
+}
+
+Vec2d Collider::getPosition() const {
+    return this->centre;
+}
+
+double Collider::getRadius() const {
+    return rayon;
+}
+
+std::ostream& operator<< (std::ostream& sortie, Collider const& body) {
+    sortie << " Collider : position = " << body.getPosition() << " radius = " << body.getRadius() ;
+    return sortie;
 }
