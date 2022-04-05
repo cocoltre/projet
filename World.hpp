@@ -20,6 +20,8 @@ public :
     void reloadCacheStructure ();
     void updateCache ();
     void reset (bool regenerate = true);
-    float getSize() const;
+    float getSize () const;
+
+    void loadFromFile ();
 };
 
