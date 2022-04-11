@@ -3,6 +3,7 @@
 #include "Application.hpp"
 #include "Utility/Vertex.hpp"
 #include <vector>
+#include <Random/Random.hpp>
 
 float World::getSize() const {
     return cell_size * nbcells_ ;
@@ -28,6 +29,10 @@ void World::reloadCacheStructure () {
     int horizontalSize(nbcells_ * cell_size);
     int verticalSize(nbcells_ * cell_size);
     renderingCache_.create(horizontalSize, verticalSize);
+
+    nb_waterSeeds = getAppConfig().world_nb_water_seeds;
+    nb_grassSeeds = getAppConfig().world_nb_grass_seeds;
+    this->seeds_ = std::vector<Seed> (nb_waterSeeds + nb_grassSeeds);
 }
 
 void World::updateCache () {
@@ -64,7 +69,6 @@ void World::updateCache () {
         }
     }
 
-
     rs.texture = &getAppTexture(getAppConfig().rock_texture); // texture liée à la roche
     renderingCache_.draw(rockVertexes_.data(), rockVertexes_.size(), sf::Quads, rs);
 
@@ -80,7 +84,28 @@ void World::updateCache () {
 void World::reset (bool regenerate) {
     reloadConfig();
     reloadCacheStructure();
+
+    for (int w(0); w < nb_waterSeeds; ++w) {
+        seeds_[w].position = sf::Vector2i (uniform(0, nbcells_-1), uniform(0, nbcells_-1));
+        seeds_[w].seed = Kind::Eau;
+        cells_[seeds_[w].position.x + seeds_[w].position.y * nbcells_] = seeds_[w].seed;
+    }
+
+    for (size_t g(nb_waterSeeds); g < seeds_.size(); ++g) {
+        seeds_[g].position = sf::Vector2i (uniform(0, nbcells_-1), uniform(0, nbcells_-1));
+        seeds_[g].seed = Kind::Herbe;
+        if (cells_[seeds_[g].position.x + seeds_[g].position.y * nbcells_] != Kind::Eau) {
+            cells_[seeds_[g].position.x + seeds_[g].position.y * nbcells_] = seeds_[g].seed;
+            }
+    }
+
+    if (regenerate) {
+        steps(getAppConfig().world_generation_steps);
+        smooths(getAppConfig().world_generation_smoothness_level);
+    }
+
     updateCache();
+
 }
 
 //-----
@@ -114,12 +139,249 @@ void World::loadFromFile () {
         }
         this->cells_ = vec;
 
-        std::cout << file << std::endl;
+        std::cout << file << " " << std::endl;
 
         entree.close();
     }
-
     reloadCacheStructure();
     updateCache();
 }
 
+void World::step () {
+    for (size_t i(0); i < seeds_.size(); ++i) {
+        if (seeds_[i].seed == Kind::Herbe) {
+            seed_position(seeds_[i].position);
+        }
+        else {
+            if (bernoulli(getAppConfig().water_seeds_teleport_proba) == 0) {
+                seed_position(seeds_[i].position);
+            }
+            else {
+                int nx(0);
+                int ny(0);
+
+                do {
+                nx = uniform(0, nbcells_ - 1);
+                ny = uniform(0, nbcells_ - 1);
+                } while (seeds_[i].position.x == nx and seeds_[i].position.y == ny);
+
+                seeds_[i].position.x = nx;
+                seeds_[i].position.y = ny;
+            }
+        }
+        cells_[seeds_[i].position.x + seeds_[i].position.y * nbcells_] = seeds_[i].seed;
+    }
+}
+
+void World::seed_position (sf::Vector2i& a) {
+    int nx(0);
+    int ny(0);
+
+    do {
+    nx = uniform(-1, 1);
+    ny = uniform(-1, 1);
+    } while (std::abs(nx - ny) != 1);
+
+    a.x += nx;
+    a.y += ny;
+
+    if (a.y > nbcells_ - 1) {
+        a.y = nbcells_ - 1;
+    }
+    else if (a.y < 0) {
+        a.y = nbcells_;
+    }
+    else if (a.x > nbcells_ - 1) {
+        a.x = nbcells_ - 1;
+    }
+    else if (a.x < 0) {
+        a.x = nbcells_;
+    }
+}
+
+void World::steps (int nb, bool b) {
+    for (int i(0); i < nb; ++i) {
+        step ();
+    }
+
+    if (b == true) {
+        updateCache();
+    }
+}
+
+void World::smooth () {
+    auto copie_de_cells_ = cells_;  // algorithme lissant copie_de_cells ici
+    double t (0.00);
+    int index (1);
+
+    for (int x(0); x < nbcells_; ++x) {
+        for (int y(0); y < nbcells_; ++y) {
+            index = x + y * nbcells_;
+            if ((copie_de_cells_[index] == Kind::Herbe) or (copie_de_cells_[index] == Kind::Roche)) {
+                if (y == 0) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Eau) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Eau;
+                    }
+                }
+
+                if (x == 0) {
+                    t = 0.00;
+                    if (copie_de_cells_[index + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Eau) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Eau;
+                    }
+                }
+
+                if (y == nbcells_ - 1) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Eau) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Eau;
+                    }
+                }
+
+                if (x == nbcells_ - 1) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Eau) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Eau;
+                    }
+                }
+
+                if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Eau) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Eau) { ++t; }
+                    if (t/6 > getAppConfig().smoothness_water_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Eau;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int x(0); x < nbcells_; ++x) {
+        for (int y(0); y < nbcells_; ++y) {
+            index = x + y * nbcells_;
+            if (copie_de_cells_[index] == Kind::Roche) {
+                if (y == 0) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Herbe) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Herbe;
+                    }
+                }
+
+                if (y == nbcells_ - 1) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Herbe) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Herbe;
+                    }
+                }
+
+                if (x == 0) {
+                    t = 0.00;
+                    if (copie_de_cells_[index + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Herbe) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Herbe;
+                    }
+                }
+
+                if (x == nbcells_ - 1) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Herbe) { ++t; }
+                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Herbe;
+                    }
+                }
+
+                if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {
+                    t = 0.00;
+                    if (copie_de_cells_[index - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Herbe) { ++t; }
+                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Herbe) { ++t; }
+                    if (t/8 > getAppConfig().smoothness_grass_neighbor_ratio) {
+                        copie_de_cells_[index] = Kind::Herbe;
+                    }
+                }
+            }
+        }
+    }
+
+    std::swap(cells_, copie_de_cells_); // quand le lissage est fini on copie copie_de_cells_ dans cell_ (le swap est une optimisation).
+
+}
+
+void World::smooths (int n, bool b) {
+    for (int i(0); i < n; ++i) {
+        smooth ();
+    }
+
+    if (b == true) {
+        updateCache();
+    }
+}
+
+void World::saveToFile() {
+    std::ofstream fichier("new_world.map");
+
+    if (fichier.fail()) {
+        throw std::runtime_error("le fichier n'existe pas.");
+    }
+    else {
+        fichier << nbcells_ << std::endl;
+        fichier << cell_size << std::endl;
+
+        for (size_t i(0); i < cells_.size(); ++i) {
+            fichier << static_cast<short>(cells_[i]) << " ";
+        }
+
+        fichier.close();
+    }
+}
