@@ -21,8 +21,8 @@ private :
 
 public :
     Collider (Vec2d position, double arg_radius); // constructeur
-    Collider& operator= (Collider const&) = default;
-    Collider (Collider const& autre); // constructeur de copie
+    Collider& operator= (Collider const&) = default; // opérateur =
+    Collider (Collider const& other); // constructeur de copie
 
     Vec2d clamp (const Vec2d& vec);
     Vec2d directionTo (const Vec2d& to) const;
@@ -43,5 +43,3 @@ public :
     Vec2d getPosition () const;
     double getRadius () const;
 };
-
-std::ostream& operator<< (std::ostream& sortie, Collider const& body);
