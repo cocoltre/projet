@@ -2,8 +2,8 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
+enum class Kind : short { Grass, Water, Rock }; // 3 textures possibles
 
-enum class Kind : short { Herbe, Eau, Roche };
 
 class World {
 private :
@@ -14,6 +14,7 @@ private :
     std::vector<sf::Vertex> grassVertexes_;
     std::vector<sf::Vertex> waterVertexes_;
     std::vector<sf::Vertex> rockVertexes_;
+    std::vector<sf::Vertex> humidityVertexes_;
 
     struct Seed {
         sf::Vector2i position;
@@ -23,13 +24,17 @@ private :
     int nb_waterSeeds;
     int nb_grassSeeds;
 
+    std::vector<double> humid_cells ;
+    int humidityRange_;
+
 public :
+    float getSize () const;
+
     void drawOn (sf::RenderTarget& target);
     void reloadConfig ();
     void reloadCacheStructure ();
     void updateCache ();
     void reset (bool regenerate = true);
-    float getSize () const;
 
     void loadFromFile ();
     void step ();
@@ -37,7 +42,9 @@ public :
     void steps (int nb, bool b = false);
     void smooth ();
     void smooths (int n, bool b = false);
-    void saveToFile();
+    void saveToFile ();
+
+    void set_humidity () ;
 
 };
 
