@@ -1,0 +1,58 @@
+Journal 2:
+
+Tout d'abord la mise en place du fichier pour la partie 2 
+c'est passée sans difficultées.
+
+Lors de la séance de TP semaine 6 nous avons créé:
+Le type énuméré Kind et le tableau de cellules cells_ sans difficultées.
+La méthode reloadConfig nous a posé quelques problèmes car il fallait des pointeurs. 
+Après les avoir mis, reloadConfig fonctioannait correctement.
+Puis à la fin de cette séance nous avons fini de coder reloadCacheStructure.
+Le reste (methode reset et updateCache) a été fini dans notre temps libre.
+Au final le teste 2 a fonctionné.
+
+Avant la séance de TP semaine 7 nous avons commencé l'étape 2.2
+Les retouches à updateCache sont faites à l'aide de boucles conditionelles 
+pour chaque texture, les rendant apparentes uniquement quand il faut. Cela a demandé 
+plusieurs essais mais le Teste 3 c'est déroulé sans trop de difficultées.
+Nous avons dit "woaw".
+
+Durant la séance de TP semaine 7 nous effectuons les reotuches sur
+la methode reset avec la fonction uniform pour le placement aleatoire et des boucles 
+conditionelles limitant le nombre de seed d'eau ou d'herbe.
+Teste 4 effectué sans problèmes
+
+Nous créeons ensuite la methode step et steps de meme que seed_position afin de 
+modulariser.
+Teste 5 effectué sans problèmes
+Ensuite la methode smooth et smooths dans lesquelles on travaille sur une copie de 
+cells comme demandé.
+Teste 6 a bien fonctionné
+Nous utilisons maintenant le parametre booleen regenerate de reset (introduit dans 
+l'étape 2.1)
+Teste 7 c'est déroulé comme il le faut
+
+La sauvegarde d'une configuration a été plus laborieuse.
+Aucun message d'erreure ne s'affichait or la map ne se rechargait pas quand on tappait 
+'L'
+Nous avons ensuite trouver l'erreure qui provenait en partie de saveToFile et de 
+loadFromFile.
+Le chemin d'ouverture mais aussi de sauvegarde ne fonctionnaient pas.
+Avec l'aide d'un assistant la sauvegarde et l'ouverture a fonctionnée après l'heure de 
+TP de la semaine 8.
+
+Pendant la séance de TP semaine 8 nous avons régler des petits problèmes de mise en 
+place du dossier partie 3 et un bug sur un de nos ordinateurs (Erreur: cannot output 
+file permission denied).
+
+Nous avons ensuite continuer a coder la classe Env qui avait été commencé au préalable.
+Le Test 9 n'as pas posé de soucis.
+
+Les retouches a World et updateCache ont bien fonctionner et dans le Test 10 les niveaux 
+de bleus étaient cohérents avec la map.
+
+Par contre l'affichage en mode debugging n'as pas bien fonctionné avec debugging.
+Les niveaux d'humidité étaient completement faux (pafois 'NO', parfois des grands 
+nombres où il n'y avait pas d'eau) 
+Mais au final nous avons resolus le probleme avec l'aide d'un assitant à la fin de la 
+séance du TP.
