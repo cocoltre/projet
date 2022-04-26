@@ -13,6 +13,6 @@ void FlowerGenerator::update(sf::Time dt) {         // calcule l'évolution des 
     }
 }
 
-void FlowerGenerator::reset() {
+void FlowerGenerator::reset() {         // reset le compteur à zéro
     counter = sf::Time::Zero;
 }
