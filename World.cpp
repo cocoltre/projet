@@ -13,17 +13,17 @@ float World::getSize() const { // renvoie la taille du monde
     return cell_size * nbcells_ ;
 }
 
-void World::drawOn (sf::RenderTarget& target) {             // affiche les cellules texturées et leur taux d'humidité
-
+void World::drawOn (sf::RenderTarget& target) const {             // affiche les cellules texturées et leur taux d'humidité
     int text_size (30);                                     // pour le taux d'humidité
     sf::Color text_color(sf::Color::Red);
     Vec2d cursor (getApp().getCursorPositionInView());
-    Vec2d text_position (cursor.x()/cell_size, cursor.y()/cell_size);
+    Vec2d cursor_position (coord(cursor));
+    Vec2d text_position (cursor.x() - 50, cursor.y() + 50);
 
     if (getAppConfig().showHumidity() == true) {            // pour afficher le taux d'humidité
-        renderingCache_.draw(humidityVertexes_.data(), humidityVertexes_.size(), sf::Quads);
-        if (isDebugOn() == true) {                          // pour affichier les valeurs des taux d'humidité
-            auto const text = buildText(std::to_string(humid_cells[text_position.x() + text_position.y() * nbcells_]), text_position, getAppFont(), text_size, text_color);
+        target.draw(humidityVertexes_.data(), humidityVertexes_.size(), sf::Quads);
+        if (isDebugOn() == true) {                          // pour afficher les valeurs des taux d'humidité
+            auto const text = buildText(to_nice_string(humid_cells[cursor_position.x() + cursor_position.y() * nbcells_]), text_position, getAppFont(), text_size, text_color);
             target.draw(text);
         }
     }
@@ -33,16 +33,16 @@ void World::drawOn (sf::RenderTarget& target) {             // affiche les cellu
     }
 }
 
-const double eta (getAppConfig().world_humidity_init_level);    // déclaration et initialisation de constantes
-const double lambda (getAppConfig().world_humidity_decay_rate);
-const double seuil (getAppConfig().world_humidity_threshold);
-
 
 void World::reloadConfig () {                                   // donne des valeurs aux attributs (sauf vertexes)
     this->nbcells_ = getAppConfig().world_cells;
     this->cell_size = getAppConfig().world_size / nbcells_;
     std::vector<Kind> vec (nbcells_*nbcells_, Kind::Rock);
     this->cells_ = vec;
+
+    const double eta (getAppConfig().world_humidity_init_level);    // déclaration et initialisation de constantes
+    const double lambda (getAppConfig().world_humidity_decay_rate);
+    const double seuil (getAppConfig().world_humidity_threshold);
 
     int hr(0);                                           // calcule le rayon d'humidité
     while (eta * exp(-hr/lambda) > seuil) {
@@ -59,16 +59,16 @@ void World::reloadConfig () {                                   // donne des val
 
 }
 
-void World::reloadCacheStructure () {                           // initiale les attributs (vertexes) liés à la texture et humidité des cellules
+void World::reloadCacheStructure () {                           // initialise les attributs (vertexes) liés à la texture et humidité des cellules
     grassVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
     waterVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
     rockVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
-    humidityVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["show humidity"], nbcells_, cell_size);
+    humidityVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
     renderingCache_.create(nbcells_ * cell_size, nbcells_ * cell_size);     // initialise la texture du terrain
 }
 
 void World::updateCache () {                                    // met à jour l'attribut renderingCache_ (crée la texture)
-    double minHumidity (humid_cells[0]);                        // calcule l'humidité minimale et maximame du terrain
+    double minHumidity (humid_cells[0]);                        // calcule l'humidité minimale et maximale du terrain
     double maxHumidity (humid_cells[0]);
     for (size_t i(1); i < humid_cells.size(); ++i) {
         if (humid_cells[i] < minHumidity) {
@@ -109,6 +109,7 @@ void World::updateCache () {                                    // met à jour l
                 }
             }
 
+
             blue_level = (humid_cells[id] - minHumidity)/ (maxHumidity - minHumidity) * 255; // calcule le niveau de bleu de la cellule selon son taux d'humidité
             for (int j(0); j < 4; ++j) {
                 humidityVertexes_[index[j]].color = sf::Color(0, 0, blue_level); // rend la cellule plus ou moins bleue selon son taux d'humidité
@@ -127,6 +128,9 @@ void World::updateCache () {                                    // met à jour l
     renderingCache_.draw(grassVertexes_.data(), grassVertexes_.size(), sf::Quads, rs);
 
     renderingCache_.display();                                 // rend effectif le dessin de la texture
+
+
+
 }
 
 void World::reset (bool regenerate) {                          // initialise l'ensemble des attributs du monde
@@ -160,7 +164,8 @@ void World::reset (bool regenerate) {                          // initialise l'e
 
 void World::loadFromFile () {                   // pour charger un monde depuis un fichier
     std::string file (getApp().getResPath() + getAppConfig().world_init_file);
-    std::ifstream entree (file.c_str());
+    std::ifstream entree;
+    entree.open (file.c_str());
 
     if (entree.fail()) {
         throw std::runtime_error("le fichier n'existe pas.");
@@ -263,7 +268,7 @@ void World::seed_position (sf::Vector2i& a) { // modifie aléatoirement la posit
     }
 }
 
-void World::steps (int nb, bool b) { // fait se déplacer plusieurx fois chaque graine de manière aléatoire
+void World::steps (int nb, bool b) { // fait se déplacer plusieurs fois chaque graine de manière aléatoire
     for (int i(0); i < nb; ++i) {
         step ();
     }
@@ -433,7 +438,8 @@ void World::smooths (int n, bool b) { // lisse les différentes zones plusieurs 
 }
 
 void World::saveToFile () {           // sauvegarde une nouvelle configuration dans un fichier
-    std::ofstream fichier("new_world.map");
+    std::ofstream fichier;
+    fichier.open(getApp().getResPath() + "new_world.map");
 
     if (fichier.fail()) {
         throw std::runtime_error("le fichier n'existe pas.");
@@ -460,10 +466,14 @@ void World::saveToFile () {           // sauvegarde une nouvelle configuration d
         }
 
         fichier.close();
+        std::cout << "map saved to new_world.map" << std::endl;
     }
 }
 
 void World::set_humidity () {       // initialise le taux d'humidité de chaque cellule du terrain
+    const double eta (getAppConfig().world_humidity_init_level);    // déclaration et initialisation de constantes
+    const double lambda (getAppConfig().world_humidity_decay_rate);
+
     double dist (0.00);
     humid_cells.clear();            // remet à zéro le taux d'humidité de chaque cellule
     for (int x(0); x < nbcells_; ++x) {
@@ -479,3 +489,21 @@ void World::set_humidity () {       // initialise le taux d'humidité de chaque 
         }
     }
 }
+
+bool World::isGrowable(const Vec2d& p) {                    // détermine si une cellule est d'herbe
+    return (cells_[p.x() + p.y()*nbcells_] == Kind::Grass);
+}
+
+Vec2d World::coord (const Vec2d& p) const {                       // retourne les coordonnées de la cellule contenant la position p
+    return Vec2d(int(p.x()/cell_size), int(p.y()/cell_size));
+}
+
+std::vector<double> World::get_humid_cells() {              // retourne le vector d'humidité des cellules
+    return humid_cells;
+}
+
+int World::get_nbcells_() {                                 // retourne le nombre de cellules par ligne du monde
+    return nbcells_;
+}
+
+

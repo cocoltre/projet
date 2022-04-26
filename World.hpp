@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include <Utility/Vec2d.hpp>
+#include "Interface/Drawable.hpp"
+#pragma once
 
 enum class Kind : short { Grass, Water, Rock }; // 3 textures possibles
 
@@ -30,7 +33,7 @@ private :
 public :
     float getSize () const;
 
-    void drawOn (sf::RenderTarget& target);
+    void drawOn (sf::RenderTarget& target) const ;
     void reloadConfig ();
     void reloadCacheStructure ();
     void updateCache ();
@@ -45,6 +48,13 @@ public :
     void saveToFile ();
 
     void set_humidity () ;
+
+    bool isGrowable(const Vec2d& p);
+    Vec2d coord (const Vec2d& p) const ;
+
+    std::vector<double> get_humid_cells();
+    int get_nbcells_();
+
 
 };
 
