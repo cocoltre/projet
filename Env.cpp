@@ -81,7 +81,8 @@ void Env::resetControls() {} // remet à zéro les contrôles
 
 bool Env::addFlowerAt (const Vec2d& p) {        // ajoute une fleur si possible et renvoie alors vrai
     double size = getValueConfig()["simulation"]["env"]["initial"]["flower"]["size"]["manual"].toDouble();
-    if ((world.isGrowable(world.coord(p))) and (int(Flowers.size()) < getValueConfig()["simulation"]["env"]["max flowers"].toInt()) and (IsThereAHive(p,size) == false)) {
+    Collider col (p, size);
+    if ((world.isGrowable(world.coord(p))) and (int(Flowers.size()) < getValueConfig()["simulation"]["env"]["max flowers"].toInt()) and (getCollidingHive(col) == nullptr)) {
         Flowers.push_back(new Flower (p, getAppConfig().flower_manual_size, uniform(getAppConfig().flower_nectar_min, getAppConfig().flower_nectar_max)));
         return true;
     }
@@ -105,7 +106,8 @@ void Env::drawFlowerZone(sf::RenderTarget& target, Vec2d const& position) {     
     double size = getValueConfig()["simulation"]["env"]["initial"]["flower"]["size"]["manual"].toDouble();
     double thickness (3.0);
     sf::Color color;
-    if (world.isGrowable(world.coord(position)) and (IsThereAHive(position, size) == false)) {
+    Collider col (position, size);
+    if (world.isGrowable(world.coord(position)) and (getCollidingHive(col) == nullptr)) {
         color = sf::Color::Green;
     }
     else {
@@ -123,7 +125,7 @@ double Env::find_humidity (Vec2d p) {           // retourne le taux d'humidité 
 bool Env::addHiveAt(const Vec2d& position) {        // ajoute une ruche à l'ensemble de ruches
     double radius (uniform(getAppConfig().hive_min_size, getAppConfig().hive_max_size));
     Hive big_hive (position, radius);
-    if ((getCollidingHive(big_hive) != nullptr) or (getCollidingFlower(big_hive) != nullptr) or (world.isHiveable(position, radius) == false)) {
+    if ((getCollidingHive(big_hive) != nullptr) or (getCollidingFlower(big_hive) != nullptr) or (world.isHiveable(position, radius) == false)) {    // si les conditions sont réunies pour la création d'une ruche
         return false;
     }
     else {
@@ -162,48 +164,6 @@ void Env::delete_hives () {         // supprime toutes les ruches
     }
 }
 
-bool Env::IsThereAHive (const Vec2d& p, double radius) {               // renvoie vrai si une ruche occupe la position p
-    Vec2d a (world.coord({p.x() - radius, p.y() - radius}));
-    Vec2d b (world.coord({p.x() + radius, p.y() + radius}));
-
-    for (size_t i(0); i < Hives.size(); ++i) {
-        for (int j(a.x()); j < b.x(); ++j) {
-            for (int k(a.y()); k < b.y(); ++k) {
-                if (world.coord(Hives[i]->getPosition()) == Vec2d(j,k)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
-bool Env::IsThereAFlower (const Vec2d& p, double radius) {               // renvoie vrai si une fleur occupe la position p
-    Vec2d a (world.coord({p.x() - radius, p.y() - radius}));
-    Vec2d b (world.coord({p.x() + radius, p.y() + radius}));
-
-    /*for (size_t i(0); i < Flowers.size(); ++i) {
-        for (int j(a.x()); j < b.x(); ++j) {
-            for (int k(a.y()); k < b.y(); ++k) {
-                if (world.coord(Flowers[i]->getPosition()) == Vec2d(j,k)) {
-                    return true;
-                }
-            }
-        }
-    }*/
-            for (int j(a.x()); j < b.x(); ++j) {
-                for (int k(a.y()); k < b.y(); ++k) {
-                    Collider col({double(j), double(k)}, 1.0);
-                    if (getCollidingFlower(col) != nullptr) {
-                        return true;
-                    }
-                }
-            }
-
-
-    return false;
-}
-
 void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {       // dessine un carré autour du curseur qui selon sa couleur détermine si
                                                                                     // une ruche peut être plantée ou non
     double thickness (5.0);
@@ -211,14 +171,15 @@ void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {   
 
     double size (getAppConfig().hive_manual_size);
     double factor (getAppConfig().hiveable_factor);
+    Collider col (position, size*factor);
 
-    if ((IsThereAHive(position, size*factor) == true) or (IsThereAFlower(position, size*factor) == true)) {
+    if ((getCollidingHive(col) != nullptr) or (getCollidingFlower(col) != nullptr)) {   // s'il y a collision avec une ruche ou une fleur
         color = sf::Color::Blue;
     }
-    else if (world.isHiveable(position, size*factor) == false) {
+    else if (world.isHiveable(position, size*factor) == false) {                        // si pas de collision et que le sol n'est pas de l'herbe
         color = sf::Color::Red;
     }
-    else {
+    else {                                                                              // si pas de collision et que le sol est d'herbe
         color = sf::Color::Green;
     }
 
@@ -229,7 +190,8 @@ void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {   
     Vec2d newTopBottom (world.coord(TopBottom));
     double world_size (world.get_nbcells_()*world.get_cell_size()); // largeur du monde si on prend en compte la taille des cellules
 
-    if ((newLeftTop.x() < 0.00)) {                          // côté gauche
+    // côté gauche
+    if ((newLeftTop.x() < 0.00)) {
         if ((newLeftTop.y() > 0.00)) {
             if ((newTopBottom.y() < world.get_nbcells_())) {      // côté gauche intérieur
                 sf::RectangleShape shape2(buildRectangle({ 0.00, LeftTop.y() }, { TopBottom.x(), TopBottom.y()}, color, thickness)); // partie gauche
@@ -259,7 +221,9 @@ void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {   
             target.draw(shape23);
         }
     }
-    else if ((newTopBottom.x() > world.get_nbcells_())) {       // côté droit
+
+    // côté droit
+    else if ((newTopBottom.x() > world.get_nbcells_())) {
         if (newLeftTop.y() > 0.00) {
             if (newTopBottom.y() < world.get_nbcells_()) {      // côté droit intérieur
                 sf::RectangleShape shape3(buildRectangle({ LeftTop.x(), LeftTop.y() }, { world_size, TopBottom.y() }, color, thickness)); // partie droite
