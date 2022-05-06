@@ -1,11 +1,12 @@
 #include <iostream>
-#include "Bee.hpp"
 #include <vector>
 #include "Collider.hpp"
 #include <SFML/Graphics.hpp>
 #include "Interface/Drawable.hpp"
 #include "Interface/Updatable.hpp"
 #pragma once
+
+class Bee; // prédéclaration
 
 class Hive : public Collider, public Drawable, public Updatable {
 private :

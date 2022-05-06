@@ -8,19 +8,22 @@
 #pragma once
 
 
-class Bee: public Collider, public Drawable, public Updatable{
+class Bee: public Collider, public Drawable, public Updatable {
 private:
     Hive& Home;
     Vec2d speed;
     double energy;
+    sf::Texture const& texture;
 
 public:
-    Bee(const Vec2d& position, const double& arg_diam, Hive& Home, const double& energy, const double& ScalSpeed);
+    Bee(Hive& Home, const Vec2d& position, const double& arg_rad, const double& energy, const double& ScalSpeed);
+    ~Bee () {};
 
     void move(sf:: Time dt);
-    bool life;
+    bool Isdead ();
+    virtual j::Value const& getConfig() ;
     void drawOn(sf::RenderTarget& target) const;
     void update(sf::Time dt);
-    double alpha(double Vec2d::angle(speed));
-};
+    double get_energy();
 
+};

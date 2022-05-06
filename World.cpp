@@ -511,24 +511,114 @@ std::vector<Kind> World::get_cells_() {                     // retourne cells_
     return cells_;
 }
 
+float World::get_cell_size() {
+    return cell_size;
+}
 
-bool World::isHiveable(const Vec2d& position, double radius) {
+
+bool World::isHiveable(const Vec2d& position, double radius) {                        // détermine si une ruche peut être ajoutée (si le sol est d'herbe)
+    sf::Vector2i topLeft (coord(clamp({position.x() - radius, position.y() - radius})));
+    sf::Vector2i bottomRight (coord(clamp({position.x() + radius, position.y() + radius})));
+    std::vector<std::size_t> indexes(indexesForRect(topLeft, bottomRight));
+
+    for (size_t i(0); i < indexes.size(); ++i) {
+        if ((cells_[indexes[i]] == Kind::Water) or (cells_[indexes[i]] == Kind::Rock)) {
+            return false;
+        }
+    }
     return true;
 }
 
-std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const {
+Vec2d World::clamp (const Vec2d& vec) { // réajuste les coordonnées d'un vecteur dans le monde torique
+    double x (0.00);
+    double y (0.00);
+    Vec2d worldSize = getApp().getEnvSize();
+    double world_height = worldSize.y();
+    double world_width  = worldSize.x();
+
+    x = fmod(vec.x(), world_width);
+    if (x<0) {
+        x += world_width;
+    }
+
+    y = fmod(vec.y(), world_height);
+    if (y<0) {
+        y += world_height;
+    }
+    return {x,y};
+}
+
+std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const {  // renvoie les indices des cellules du terrain
+                                                                                                                      // que la ruche englobe
+    std::vector<std::size_t> vec;
     // Handle toric world coordinates for rectangles:
         //
         // case 1) if topLeft and bottomRight are really what they should be,
         //         then the rectangle is not wrapped around the toric world.
-    if (topLeft.x() >= )
-        // case 2) if topLeft and bottomRight are swapped,
-        //         then bottomRight was actually outside.
-        // case 3) if the left and right sides are swapped,
-        //         then the rectangle is wrapped on the right side of the world.
+    if ((topLeft.x < bottomRight.x) and (topLeft.y < bottomRight.y)) {
+        for (int i(topLeft.x); i <= bottomRight.x; ++i) {
+            for (int j(topLeft.y); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
+
+    // case 3) if the left and right sides are swapped,
+    //         then the rectangle is wrapped on the right side of the world.
+    else if ((topLeft.x > bottomRight.x) and (topLeft.y < bottomRight.y)) {
+        for (int i(topLeft.x); i < nbcells_; ++i) {                             // côté droit
+            for (int j(topLeft.y); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(0); i <= bottomRight.x; ++i) {                               // côté gauche
+            for (int j(topLeft.y); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
+
+    // case 2) if topLeft and bottomRight are swapped,
+    //         then bottomRight was actually outside.
+    else if ((topLeft.x > bottomRight.x) and (topLeft.y > bottomRight.y)) {
+        for (int i(0); i <= bottomRight.x; ++i) {                               // en haut à gauche
+            for (int j(0); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(topLeft.x); i < nbcells_; ++i) {                             // en haut à droite
+            for (int j(0); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(0); i <= bottomRight.x; ++i) {                               // en bas à gauche
+            for (int j(topLeft.y); j < nbcells_; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(topLeft.x); i < nbcells_; ++i) {                             // en bas à droite
+            for (int j(topLeft.y); j < nbcells_; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
         // case 4) if the top and bottom sides are swapped,
         //         then the rectangle is swapped on the bottom side of the world.
         //
+    else if ((topLeft.x < bottomRight.x) and (topLeft.y > bottomRight.y)) {
+        for (int i(topLeft.x); i <= bottomRight.x; ++i) {                       // en haut
+            for (int j(0); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(topLeft.x); i <= bottomRight.x; ++i) {                       // en bas
+            for (int j(topLeft.y); j <= nbcells_; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
+    return vec;
+
         // Graphically, where `*` is topLeft and `%` is bottomRight
         // and `o` and `x` are the area covered by the rectangle:
         //
@@ -560,7 +650,8 @@ std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::
         //   Ë…
         //   y
         //
+}
 
-
-      //TO BE COMPLETED
+bool World::IsFlyable(Vec2d const& p) {
+    return (cells_[coord(p).x() + coord(p).y()*nbcells_] != Kind::Rock);
 }

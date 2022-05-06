@@ -19,6 +19,11 @@ void Env::update(sf::Time dt) { // fait évoluer l'environnement sur une périod
         }
         Flowers.erase(std::remove(Flowers.begin(), Flowers.end(), nullptr), Flowers.end());
     }
+
+    for (size_t i(0); i < Hives.size(); ++i) {
+       Hives[i]->update(dt);
+    }
+
 }
 
 void Env::drawOn(sf::RenderTarget& target) const { // permet de dessiner le contenu de l'environnement
@@ -74,8 +79,9 @@ float Env::getSize () const { // renvoie la taille du terrain
 
 void Env::resetControls() {} // remet à zéro les contrôles
 
-bool Env::addFlowerAt (const Vec2d& p) {        // ajoute une fleur si la cellule est d'herbe et renvoie alors vrai
-    if (world.isGrowable(world.coord(p)) and (int(Flowers.size()) < getValueConfig()["simulation"]["env"]["max flowers"].toInt()) and (IsThereAHive(p) == false)) {
+bool Env::addFlowerAt (const Vec2d& p) {        // ajoute une fleur si possible et renvoie alors vrai
+    double size = getValueConfig()["simulation"]["env"]["initial"]["flower"]["size"]["manual"].toDouble();
+    if ((world.isGrowable(world.coord(p))) and (int(Flowers.size()) < getValueConfig()["simulation"]["env"]["max flowers"].toInt()) and (IsThereAHive(p,size) == false)) {
         Flowers.push_back(new Flower (p, getAppConfig().flower_manual_size, uniform(getAppConfig().flower_nectar_min, getAppConfig().flower_nectar_max)));
         return true;
     }
@@ -95,10 +101,11 @@ void Env::delete_flowers () {                   // supprime toutes les fleurs
 }
 
 void Env::drawFlowerZone(sf::RenderTarget& target, Vec2d const& position) {                     // dessine un anneau autour du curseur qui selon sa couleur détermine si
+                                                                                                // la fleur peut être plantée ou non
     double size = getValueConfig()["simulation"]["env"]["initial"]["flower"]["size"]["manual"].toDouble();
     double thickness (3.0);
     sf::Color color;
-    if (world.isGrowable(world.coord(position)) and (IsThereAHive(position) == false)) {
+    if (world.isGrowable(world.coord(position)) and (IsThereAHive(position, size) == false)) {
         color = sf::Color::Green;
     }
     else {
@@ -116,7 +123,7 @@ double Env::find_humidity (Vec2d p) {           // retourne le taux d'humidité 
 bool Env::addHiveAt(const Vec2d& position) {        // ajoute une ruche à l'ensemble de ruches
     double radius (uniform(getAppConfig().hive_min_size, getAppConfig().hive_max_size));
     Hive big_hive (position, radius);
-    if ((getCollidingHive(big_hive) != nullptr) or (getCollidingFlower(big_hive) != nullptr)) {
+    if ((getCollidingHive(big_hive) != nullptr) or (getCollidingFlower(big_hive) != nullptr) or (world.isHiveable(position, radius) == false)) {
         return false;
     }
     else {
@@ -155,42 +162,157 @@ void Env::delete_hives () {         // supprime toutes les ruches
     }
 }
 
-bool Env::IsThereAHive (const Vec2d& p) {               // renvoie vrai si une ruche occupe la position p
+bool Env::IsThereAHive (const Vec2d& p, double radius) {               // renvoie vrai si une ruche occupe la position p
+    Vec2d a (world.coord({p.x() - radius, p.y() - radius}));
+    Vec2d b (world.coord({p.x() + radius, p.y() + radius}));
+
     for (size_t i(0); i < Hives.size(); ++i) {
-        if (Hives[i]->getPosition() == p) {
-            return true;
+        for (int j(a.x()); j < b.x(); ++j) {
+            for (int k(a.y()); k < b.y(); ++k) {
+                if (world.coord(Hives[i]->getPosition()) == Vec2d(j,k)) {
+                    return true;
+                }
+            }
         }
     }
     return false;
 }
 
-bool Env::IsThereAFlower (const Vec2d& p) {               // renvoie vrai si une ruche occupe la position p
-    for (size_t i(0); i < Flowers.size(); ++i) {
-        if (Flowers[i]->getPosition() == p) {
-            return true;
+bool Env::IsThereAFlower (const Vec2d& p, double radius) {               // renvoie vrai si une fleur occupe la position p
+    Vec2d a (world.coord({p.x() - radius, p.y() - radius}));
+    Vec2d b (world.coord({p.x() + radius, p.y() + radius}));
+
+    /*for (size_t i(0); i < Flowers.size(); ++i) {
+        for (int j(a.x()); j < b.x(); ++j) {
+            for (int k(a.y()); k < b.y(); ++k) {
+                if (world.coord(Flowers[i]->getPosition()) == Vec2d(j,k)) {
+                    return true;
+                }
+            }
         }
-    }
+    }*/
+            for (int j(a.x()); j < b.x(); ++j) {
+                for (int k(a.y()); k < b.y(); ++k) {
+                    Collider col({double(j), double(k)}, 1.0);
+                    if (getCollidingFlower(col) != nullptr) {
+                        return true;
+                    }
+                }
+            }
+
+
     return false;
 }
 
-void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {
+void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {       // dessine un carré autour du curseur qui selon sa couleur détermine si
+                                                                                    // une ruche peut être plantée ou non
     double thickness (5.0);
     sf::Color color;
-    double left (0.0);
-    double top (0.0);
-    double right (0.0);
-    double bottom (0.0);
 
-    if ((IsThereAHive(position) == true) or (IsThereAFlower(position) == true)) {
+    double size (getAppConfig().hive_manual_size);
+    double factor (getAppConfig().hiveable_factor);
+
+    if ((IsThereAHive(position, size*factor) == true) or (IsThereAFlower(position, size*factor) == true)) {
         color = sf::Color::Blue;
     }
-    else if (world.get_cells_()[world.coord(position).x() + world.coord(position).y()*world.get_nbcells_()] == Kind::Grass) {
-        color = sf::Color::Green;
-    }
-    else {
+    else if (world.isHiveable(position, size*factor) == false) {
         color = sf::Color::Red;
     }
+    else {
+        color = sf::Color::Green;
+    }
 
-    sf::RectangleShape shape(buildRectangle({ left, top }, { right, bottom }, color, thickness));
-    target.draw(shape);
+    // dessin du rectangle en fonction de la position du curseur
+    Vec2d LeftTop ((position.x()-size*factor), (position.y()-size*factor));
+    Vec2d TopBottom ((position.x()+size*factor), (position.y()+size*factor));
+    Vec2d newLeftTop (world.coord(LeftTop));                // coordonnées dans le monde faits de cellules (sans prendre en compte leur taille)
+    Vec2d newTopBottom (world.coord(TopBottom));
+    double world_size (world.get_nbcells_()*world.get_cell_size()); // largeur du monde si on prend en compte la taille des cellules
+
+    if ((newLeftTop.x() < 0.00)) {                          // côté gauche
+        if ((newLeftTop.y() > 0.00)) {
+            if ((newTopBottom.y() < world.get_nbcells_())) {      // côté gauche intérieur
+                sf::RectangleShape shape2(buildRectangle({ 0.00, LeftTop.y() }, { TopBottom.x(), TopBottom.y()}, color, thickness)); // partie gauche
+                sf::RectangleShape shape21(buildRectangle({ LeftTop.x()+ world_size, LeftTop.y() }, { world_size, TopBottom.y() }, color, thickness));  // partie droite
+                target.draw(shape2);
+                target.draw(shape21);
+            }
+            else {                                                // coin gauche en bas
+                sf::RectangleShape shape2(buildRectangle({ 0.00, LeftTop.y() }, { TopBottom.x(), world_size}, color, thickness));   // partie gauche du bas
+                sf::RectangleShape shape21(buildRectangle({ LeftTop.x()+ world_size, LeftTop.y() }, { world_size, world_size }, color, thickness)); // partie droite du bas
+                sf::RectangleShape shape22(buildRectangle({ LeftTop.x()+ world_size, 0.00 }, { world_size, TopBottom.y() - world_size}, color, thickness)); // partie droite du bas
+                sf::RectangleShape shape23(buildRectangle({0.00, 0.00 }, { TopBottom.x(), TopBottom.y() - world_size}, color, thickness));  // partie gauche du haut
+                target.draw(shape2);
+                target.draw(shape21);
+                target.draw(shape22);
+                target.draw(shape23);
+            }
+         }
+        else {      // coin gauche du haut
+            sf::RectangleShape shape2(buildRectangle({ 0.00, 0.00 }, { TopBottom.x(), TopBottom.y() }, color, thickness));   // partie gauche du haut
+            sf::RectangleShape shape21(buildRectangle({ 0.00, LeftTop.y() + world_size}, { TopBottom.x(), world_size }, color, thickness)); // partie gauche du bas
+            sf::RectangleShape shape22(buildRectangle({ LeftTop.x()+ world_size, 0.00 }, { world_size, TopBottom.y() }, color, thickness)); // partie droite du haut
+            sf::RectangleShape shape23(buildRectangle({ LeftTop.x() + world_size, LeftTop.y() + world_size }, { world_size, world_size }, color, thickness));  // partie droite du bas
+            target.draw(shape2);
+            target.draw(shape21);
+            target.draw(shape22);
+            target.draw(shape23);
+        }
+    }
+    else if ((newTopBottom.x() > world.get_nbcells_())) {       // côté droit
+        if (newLeftTop.y() > 0.00) {
+            if (newTopBottom.y() < world.get_nbcells_()) {      // côté droit intérieur
+                sf::RectangleShape shape3(buildRectangle({ LeftTop.x(), LeftTop.y() }, { world_size, TopBottom.y() }, color, thickness)); // partie droite
+                sf::RectangleShape shape31(buildRectangle({ 0.00, LeftTop.y() }, { TopBottom.x() - world_size, TopBottom.y() }, color, thickness)); // partie gauche
+                target.draw(shape3);
+                target.draw(shape31);
+            }
+            else {              // coin droit du bas
+                sf::RectangleShape shape3(buildRectangle({ LeftTop.x(), LeftTop.y() }, { world_size, world_size }, color, thickness));   // partie droite du bas
+                sf::RectangleShape shape31(buildRectangle({ LeftTop.x(), 0.00 }, { world_size, TopBottom.y() - world_size }, color, thickness)); // partie droite du haut
+                sf::RectangleShape shape32(buildRectangle({ 0.00, 0.00 }, { TopBottom.x() - world_size, TopBottom.y() - world_size }, color, thickness)); // partie gauche du haut
+                sf::RectangleShape shape33(buildRectangle({ 0.00, LeftTop.y() }, { TopBottom.x() - world_size, world_size }, color, thickness));  // partie gauche du bas
+                target.draw(shape3);
+                target.draw(shape31);
+                target.draw(shape32);
+                target.draw(shape33);
+            }
+        }
+        else {      // coin droit du haut
+            sf::RectangleShape shape3(buildRectangle({ LeftTop.x(), 0.00 }, { world_size, TopBottom.y() }, color, thickness));   // partie droite du haut
+            sf::RectangleShape shape31(buildRectangle({ LeftTop.x(), LeftTop.y() + world_size}, { world_size, world_size }, color, thickness)); // partie droite du bas
+            sf::RectangleShape shape32(buildRectangle({ 0.00, 0.00 }, { TopBottom.x() - world_size, TopBottom.y() }, color, thickness)); // partie gauche du haut
+            sf::RectangleShape shape33(buildRectangle({ 0.00, LeftTop.y() + world_size }, { TopBottom.x() - world_size, world_size }, color, thickness));  // partie gauche du bas
+            target.draw(shape3);
+            target.draw(shape31);
+            target.draw(shape32);
+            target.draw(shape33);
+        }
+    }
+
+    // intérieur de la surface, côtés intérieur et supérieur
+    else if (LeftTop.y() > 0.00) {
+        if ((newTopBottom.y() > world.get_nbcells_())) {        // côté inférieur
+            sf::RectangleShape shape5(buildRectangle({LeftTop.x(), 0.00}, { TopBottom.x(), TopBottom.y()- world_size}, color, thickness)); // partie du haut
+            sf::RectangleShape shape51(buildRectangle({LeftTop.x(), LeftTop.y() }, { TopBottom.x(), (double)world_size}, color, thickness)); // partie du bas
+            target.draw(shape5);
+            target.draw(shape51);
+        }
+        else {      // intérieur de la surface
+            sf::RectangleShape shape(buildRectangle({LeftTop.x(), LeftTop.y() }, { TopBottom.x(), TopBottom.y() }, color, thickness));
+            target.draw(shape);
+        }
+    }
+
+    else {          // côté supérieur
+        sf::RectangleShape shape4(buildRectangle({LeftTop.x(), 0.00}, { TopBottom.x(), TopBottom.y()}, color, thickness));      // partie du haut
+        sf::RectangleShape shape41(buildRectangle({LeftTop.x(), LeftTop.y() + world_size}, { TopBottom.x(), (double)world_size}, color, thickness));    // partie du bas
+        target.draw(shape4);
+        target.draw(shape41);
+    }
+
+}
+
+bool Env::IsFlyable(const Vec2d& p) {       // retourne true si le sol n'est pas de roche
+    return world.IsFlyable(p);
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Hive.hpp"
+#include "Bee.hpp"
 #include "Application.hpp"
 #include "Config.hpp"
 #include "Utility/Utility.hpp"
@@ -9,10 +10,18 @@ Hive::Hive (Vec2d position, double arg_radius) : Collider(position, arg_radius),
 
 
 void Hive::addBee() {                                   // peuple la ruche
-
+    Bees.push_back(new Bee(*this, getPosition(), 10.0, 10.0, 10.0));
 }
 
 void Hive::update(sf::Time dt) {                        // fait évoluer toutes les abeilles de la ruche à chaque pas de temps dt
+    for (size_t i(0); i < Bees.size(); ++i) {
+       Bees[i]->update(dt);
+       if (Bees[i]->get_energy() == 0.00) {
+           delete Bees[i];
+           Bees[i] = nullptr;
+       }
+    }
+    Bees.erase(std::remove(Bees.begin(), Bees.end(), nullptr), Bees.end());
 
 }
 
@@ -20,6 +29,10 @@ void Hive::drawOn(sf::RenderTarget& targetWindow) const {     // dessine la ruch
     auto const& texture = getAppTexture(getAppConfig().hive_texture);
     auto flowerSprite = buildSprite(getPosition(), getRadius()*2.5, texture);
     targetWindow.draw(flowerSprite);
+
+    for (size_t i(0); i < Bees.size(); ++i) {               // pour afficher les abeilles
+       Bees[i]->drawOn(targetWindow);
+    }
 
     int text_size (30);                                     // pour l'affichage de la quantité de nectar
     sf::Color text_color(sf::Color::Red);
@@ -57,3 +70,4 @@ void Hive::delete_bees () {
         Bees.erase(std::remove(Bees.begin(), Bees.end(), nullptr), Bees.end());
     }
 }
+
