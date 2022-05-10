@@ -35,10 +35,10 @@ void World::drawOn (sf::RenderTarget& target) const {             // affiche les
 
 
 void World::reloadConfig () {                                   // donne des valeurs aux attributs (sauf vertexes)
-    this->nbcells_ = getAppConfig().world_cells;
-    this->cell_size = getAppConfig().world_size / nbcells_;
+    nbcells_ = getAppConfig().world_cells;
+    cell_size = getAppConfig().world_size / nbcells_;
     std::vector<Kind> vec (nbcells_*nbcells_, Kind::Rock);
-    this->cells_ = vec;
+    cells_ = vec;
 
     const double eta (getAppConfig().world_humidity_init_level);    // déclaration et initialisation de constantes
     const double lambda (getAppConfig().world_humidity_decay_rate);
@@ -48,14 +48,14 @@ void World::reloadConfig () {                                   // donne des val
     while (eta * exp(-hr/lambda) > seuil) {
         ++ hr;
     }
-    this->humidityRange_ = hr;
+    humidityRange_ = hr;
 
     std::vector<double> vec2 (nbcells_*nbcells_);
-    this->humid_cells = vec2;
+    humid_cells = vec2;
 
     nb_waterSeeds = getAppConfig().world_nb_water_seeds;                    // compte le nombre de graines d'eau
     nb_grassSeeds = getAppConfig().world_nb_grass_seeds;                    // compte le nombre de graines d'herbe
-    this->seeds_ = std::vector<Seed> (nb_waterSeeds + nb_grassSeeds);       // donne la bonne taille à l'ensemble seeds_
+    seeds_ = std::vector<Seed> (nb_waterSeeds + nb_grassSeeds);       // donne la bonne taille à l'ensemble seeds_
 
 }
 
@@ -173,11 +173,11 @@ void World::loadFromFile () {                   // pour charger un monde depuis 
     else {
         std::string phrase;
         getline(entree, phrase);                // lit la 1ère ligne : le nombre de cellules par ligne
-        this->nbcells_ = std::stoi(phrase);
+        nbcells_ = std::stoi(phrase);
 
         std::string phrase2;
         getline(entree, phrase2);               // lit la 2ème ligne : la taille des cellules
-        this->cell_size = std::stoi(phrase2);
+        cell_size = std::stoi(phrase2);
 
         std::string phrase3;                    // lit la 3ème ligne : la texture de chaque celluule
         getline(entree, phrase3);
@@ -186,7 +186,7 @@ void World::loadFromFile () {                   // pour charger un monde depuis 
         for (int i(0); i< nbcells_*nbcells_; ++i) {
             vec[i] = static_cast<Kind>(std::stoi(std::string(1, phrase3[i]))) ;
         }
-        this->cells_ = vec;
+        cells_ = vec;
 
         std::string phrase4;
         std::string phrase_cut("");
@@ -203,7 +203,7 @@ void World::loadFromFile () {                   // pour charger un monde depuis 
             vec2[i] = std::stod(phrase_cut);
             phrase_cut.clear();
         }
-        this->humid_cells = vec2;
+        humid_cells = vec2;
 
         std::cout << file << " " << std::endl;
 
@@ -480,10 +480,10 @@ void World::set_humidity () {       // initialise le taux d'humidité de chaque 
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
             if (cells_[x + y*nbcells_] == Kind::Water) {                                                // si la cellule est d'eau
-                for (int nx(x - this->humidityRange_); nx < x + this->humidityRange_ + 2; ++ nx) {      // alors pour toutes les cellules de son voisinage
-                    for (int ny(y - this->humidityRange_); ny < y + humidityRange_ + 2; ++ ny) {
+                for (int nx(x - humidityRange_); nx < x + humidityRange_ + 2; ++ nx) {      // alors pour toutes les cellules de son voisinage
+                    for (int ny(y - humidityRange_); ny < y + humidityRange_ + 2; ++ ny) {
                         dist = std::hypot(x-nx, y-ny);                                                  // on calcule la distance les séparant,
-                        this->humid_cells[nx + ny*nbcells_] += eta*exp(-dist/lambda);                   // puis le taux d'humité de la cellule change
+                        humid_cells[nx + ny*nbcells_] += eta*exp(-dist/lambda);                   // puis le taux d'humité de la cellule change
                     }
                 }
             }
@@ -511,24 +511,114 @@ std::vector<Kind> World::get_cells_() {                     // retourne cells_
     return cells_;
 }
 
+float World::get_cell_size() {
+    return cell_size;
+}
 
-bool World::isHiveable(const Vec2d& position, double radius) {
+
+bool World::isHiveable(const Vec2d& position, double radius) {                        // détermine si une ruche peut être ajoutée (si le sol est d'herbe)
+    sf::Vector2i topLeft (coord(clamp({position.x() - radius, position.y() - radius})));
+    sf::Vector2i bottomRight (coord(clamp({position.x() + radius, position.y() + radius})));
+    std::vector<std::size_t> indexes(indexesForRect(topLeft, bottomRight));
+
+    for (size_t i(0); i < indexes.size(); ++i) {
+        if ((cells_[indexes[i]] == Kind::Water) or (cells_[indexes[i]] == Kind::Rock)) {
+            return false;
+        }
+    }
     return true;
 }
 
-std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const {
+Vec2d World::clamp (const Vec2d& vec) { // réajuste les coordonnées d'un vecteur dans le monde torique
+    double x (0.00);
+    double y (0.00);
+    Vec2d worldSize = getApp().getEnvSize();
+    double world_height = worldSize.y();
+    double world_width  = worldSize.x();
+
+    x = fmod(vec.x(), world_width);
+    if (x<0) {
+        x += world_width;
+    }
+
+    y = fmod(vec.y(), world_height);
+    if (y<0) {
+        y += world_height;
+    }
+    return {x,y};
+}
+
+std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const {  // renvoie les indices des cellules du terrain
+                                                                                                                      // que la ruche englobe
+    std::vector<std::size_t> vec;
     // Handle toric world coordinates for rectangles:
         //
         // case 1) if topLeft and bottomRight are really what they should be,
         //         then the rectangle is not wrapped around the toric world.
-    if (topLeft.x() >= )
-        // case 2) if topLeft and bottomRight are swapped,
-        //         then bottomRight was actually outside.
-        // case 3) if the left and right sides are swapped,
-        //         then the rectangle is wrapped on the right side of the world.
+    if ((topLeft.x < bottomRight.x) and (topLeft.y < bottomRight.y)) {
+        for (int i(topLeft.x); i <= bottomRight.x; ++i) {
+            for (int j(topLeft.y); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
+
+    // case 3) if the left and right sides are swapped,
+    //         then the rectangle is wrapped on the right side of the world.
+    else if ((topLeft.x > bottomRight.x) and (topLeft.y < bottomRight.y)) {
+        for (int i(topLeft.x); i < nbcells_; ++i) {                             // côté droit
+            for (int j(topLeft.y); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(0); i <= bottomRight.x; ++i) {                               // côté gauche
+            for (int j(topLeft.y); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
+
+    // case 2) if topLeft and bottomRight are swapped,
+    //         then bottomRight was actually outside.
+    else if ((topLeft.x > bottomRight.x) and (topLeft.y > bottomRight.y)) {
+        for (int i(0); i <= bottomRight.x; ++i) {                               // en haut à gauche
+            for (int j(0); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(topLeft.x); i < nbcells_; ++i) {                             // en haut à droite
+            for (int j(0); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(0); i <= bottomRight.x; ++i) {                               // en bas à gauche
+            for (int j(topLeft.y); j < nbcells_; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(topLeft.x); i < nbcells_; ++i) {                             // en bas à droite
+            for (int j(topLeft.y); j < nbcells_; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
         // case 4) if the top and bottom sides are swapped,
         //         then the rectangle is swapped on the bottom side of the world.
         //
+    else if ((topLeft.x < bottomRight.x) and (topLeft.y > bottomRight.y)) {
+        for (int i(topLeft.x); i <= bottomRight.x; ++i) {                       // en haut
+            for (int j(0); j <= bottomRight.y; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+        for (int i(topLeft.x); i <= bottomRight.x; ++i) {                       // en bas
+            for (int j(topLeft.y); j <= nbcells_; ++j) {
+                vec.push_back(i+j*nbcells_);
+            }
+        }
+    }
+    return vec;
+
         // Graphically, where `*` is topLeft and `%` is bottomRight
         // and `o` and `x` are the area covered by the rectangle:
         //
@@ -560,7 +650,8 @@ std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::
         //   Ë…
         //   y
         //
+}
 
-
-      //TO BE COMPLETED
+bool World::IsFlyable(Vec2d const& p) {
+    return (cells_[coord(p).x() + coord(p).y()*nbcells_] != Kind::Rock);
 }

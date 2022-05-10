@@ -1,11 +1,12 @@
 #include <iostream>
-#include "Bee.hpp"
 #include <vector>
 #include "Collider.hpp"
 #include <SFML/Graphics.hpp>
 #include "Interface/Drawable.hpp"
 #include "Interface/Updatable.hpp"
 #pragma once
+
+class Bee; // prédéclaration
 
 class Hive : public Collider, public Drawable, public Updatable {
 private :
@@ -19,11 +20,14 @@ public :
     ~Hive () {              // destructeur
         delete_bees();
     };
-    void addBee();
+
     void update(sf::Time dt);
     void drawOn(sf::RenderTarget& targetWindow) const;
     void dropPollen(double qte);
     double takeNectar(double qte);
     void delete_bees ();
+
+protected :
+    Bee* addBee(double scoutProb=0);
 
 };

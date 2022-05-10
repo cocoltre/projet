@@ -34,12 +34,14 @@ public :
     double find_humidity (Vec2d p);
 
     bool addHiveAt(const Vec2d& position);
-    Hive* getCollidingHive(const Collider& body);
-    Flower* getCollidingFlower(const Collider& body);
+    Hive* getCollidingHive(const Collider& body) const;
+    Flower* getCollidingFlower(const Collider& body) const;
     void delete_hives ();
-    bool IsThereAHive (const Vec2d& p);
+    bool IsThereAHive (const Vec2d& p, double radius);
 
     void drawHiveableZone(sf::RenderTarget& target, Vec2d const& position);
-    bool IsThereAFlower (const Vec2d& p);
+    bool IsThereAFlower (const Vec2d& p, double radius);
+
+    bool IsFlyable (const Vec2d& p);
 
 };
