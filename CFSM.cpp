@@ -9,16 +9,16 @@ state CFSM::getState() const {
 
 void CFSM::nextState() {
     onEnterState(States[index]);
-    ++ index;
-
+    if (index != (int)States.size() - 1) {
+        ++ index;
+    }
+    else { index = 0; }
 }
 
-void CFSM::onEnterState(state const& s) const {
+void CFSM::onEnterState(state const& s) {}
 
-}
+void CFSM::onState (state const& s, sf::Time dt) {}
 
-void CFSM::onState (state const& s, sf::Time dt) const {}
-
-void CFSM::action(sf::Time dt) const {
+void CFSM::action(sf::Time dt) {
     onState(States[index], dt);
 }

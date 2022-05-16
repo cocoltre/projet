@@ -8,7 +8,7 @@ private :
     static state const IN_HIVE;
 
 public :
-    WorkerBee (const Hive& Home, const Vec2d& position);
+    WorkerBee (Hive& Home, const Vec2d& position);
     ~WorkerBee() {}
     virtual j::Value getConfig() const&;
 

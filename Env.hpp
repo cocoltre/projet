@@ -44,4 +44,6 @@ public :
 
     bool IsFlyable (const Vec2d& p);
 
+    std::vector <Flower*> get_flowers();
+
 };

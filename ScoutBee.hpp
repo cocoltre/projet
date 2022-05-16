@@ -10,8 +10,13 @@ private :
     static state const BACK_TO_HIVE ;
 
 public :
-    ScoutBee(const Hive& Home, const Vec2d& position);
+    ScoutBee(Hive& Home, const Vec2d& position);
     ~ScoutBee() {}
     virtual j::Value getConfig() const&;
+    virtual void onEnterState(state const& s) ;
+    virtual void onState (state const& s, sf::Time dt);
+    Vec2d const* getCollidingFlowerPosition(Collider const& body);
+
+
 
 };

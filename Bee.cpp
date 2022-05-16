@@ -4,7 +4,7 @@
 #include <Utility/Vec2d.hpp>
 #include <Random/Random.hpp>
 
-Bee::Bee(const Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states, Vec2d* memory2)  // constructeur
+Bee::Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states, Vec2d* memory2)  // constructeur
     : Collider(position, arg_rad*2),
       CFSM(possible_states),
       Home(Home),
@@ -112,3 +112,36 @@ void Bee::randomMove(sf:: Time dt) {              // déplace l'abeille
 double Bee::get_energy() {              // retourne le niveau d'énergie
     return energy;
 }
+
+void Bee::onEnterState(state const& s)  {}
+
+void Bee::change_mode(std::string newmode) {
+    mode = newmode;
+}
+
+void Bee::change_target(Vec2d const& newtarget) {
+    target = newtarget;
+}
+
+void Bee::change_memory(Vec2d const* newmemory) {
+    memory = &newmemory;
+}
+
+Vec2d* Bee::get_memory() {
+    return memory;
+}
+
+Vec2d Bee::home_position () {
+    return Home.getPosition();
+}
+
+double Bee::home_radius() {
+    return Home.getRadius();
+}
+
+
+void Bee::gain_energy(double qte) {
+    Home.takeNectar(qte);
+    energy += qte;
+}
+

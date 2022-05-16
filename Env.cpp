@@ -283,3 +283,7 @@ void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {   
 bool Env::IsFlyable(const Vec2d& p) {       // retourne true si le sol n'est pas de roche
     return world.IsFlyable(p);
 }
+
+std::vector <Flower*> Env::get_flowers() {
+    return Flowers;
+}

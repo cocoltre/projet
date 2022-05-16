@@ -12,9 +12,9 @@ public :
     CFSM (std::vector<state> const& possible_states);
     state getState() const;
     void nextState() ;
-    void onEnterState(state const& s) const;
-    void onState (state const& s, sf::Time dt) const;
-    void action(sf::Time dt) const;
+    virtual void onEnterState(state const& s) ;
+    virtual void onState (state const& s, sf::Time dt) ;
+    void action(sf::Time dt) ;
 };
 
 
