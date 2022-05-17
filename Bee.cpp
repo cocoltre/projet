@@ -28,12 +28,12 @@ bool Bee::Isdead () {                   // retourne true si l'abeille est morte
 
 void Bee::drawOn(sf::RenderTarget& target) const {                           // dessine une abeille
     auto BeeSprite = buildSprite(getPosition(), getRadius(), getAppTexture(getConfig()["texture"].toString()));
-    double α (speed.angle());
+    double alpha (speed.angle());
 
-    if ((α >= PI / 2) or (α <= -PI/2)) {
+    if ((alpha >= PI / 2) or (alpha <= -PI/2)) {
         BeeSprite.scale(1, -1);
     }
-    BeeSprite.rotate(α /DEG_TO_RAD);
+    BeeSprite.rotate(alpha /DEG_TO_RAD);
     target.draw(BeeSprite);
 
     if (isDebugOn() == true) {
@@ -115,6 +115,10 @@ double Bee::get_energy() {              // retourne le niveau d'énergie
     return energy;
 }
 
+double Bee::get_pollen(){
+    return pollen;
+}
+
 void Bee::onState (state const& s, sf::Time dt) {}
 
 
@@ -150,9 +154,18 @@ double Bee::home_radius() {
     return Home.getRadius();
 }
 
+Vec2d Bee::learnFlowerLocation(const Vec2d& flowerPosition){
+    return flowerPosition;
+}
 
 void Bee::gain_energy(double qte) {
     Home.takeNectar(qte);
     energy += qte;
 }
 
+void Bee::dropPollen(double qte){
+    Home.dropPollen(qte);
+}
+
+void Bee::takePollen(double qte){
+}

@@ -14,6 +14,7 @@ private:
     Hive& Home;
     Vec2d speed;
     double energy;
+    double pollen;
     Vec2d memory;
     bool memory_value;
     std::string mode;
@@ -31,6 +32,7 @@ public:
     void drawOn(sf::RenderTarget& target) const;
     void update(sf::Time dt);
     double get_energy();
+    double get_pollen();
 
     virtual void onState (state const& s, sf::Time dt);
     virtual void onEnterState(state const& s)  ;
@@ -43,7 +45,11 @@ public:
     Vec2d home_position ();
     double home_radius();
 
+    Vec2d learnFlowerLocation(const Vec2d& flowerPosition);
+
     void gain_energy(double qte);
+    void dropPollen(double qte);
+    void takePollen(double qte);
 
 
 
