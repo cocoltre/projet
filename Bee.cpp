@@ -13,7 +13,8 @@ Bee::Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, doub
       memory(0.00, 0.00),
       memory_value(false),
       mode("au repos"),
-      target(position)
+      target(position),
+      avoidanceClock_(sf::Time::Zero)
 
 {}
 
@@ -28,12 +29,12 @@ bool Bee::Isdead () {                   // retourne true si l'abeille est morte
 
 void Bee::drawOn(sf::RenderTarget& target) const {                           // dessine une abeille
     auto BeeSprite = buildSprite(getPosition(), getRadius(), getAppTexture(getConfig()["texture"].toString()));
-    double alpha (speed.angle());
+    double α (speed.angle());
 
-    if ((alpha >= PI / 2) or (alpha <= -PI/2)) {
+    if ((α >= PI / 2) or (α <= -PI/2)) {
         BeeSprite.scale(1, -1);
     }
-    BeeSprite.rotate(alpha /DEG_TO_RAD);
+    BeeSprite.rotate(α /DEG_TO_RAD);
     target.draw(BeeSprite);
 
     if (isDebugOn() == true) {
@@ -50,12 +51,16 @@ void Bee::drawOn(sf::RenderTarget& target) const {                           // 
 }
 
 void Bee::update(sf::Time dt) {                 // simule l'évolution d'une abeille
-    move(dt);
+    action(dt);
     double rate (0.00);
     if (mode == "au repos") {
         rate = getConfig()["energy"]["consumption rates"]["idle"].toDouble();
     }
-    else { rate = getConfig()["energy"]["consumption rates"]["moving"].toDouble(); }
+    else {
+        move(dt);
+        rate = getConfig()["energy"]["consumption rates"]["moving"].toDouble();
+    }
+
 
     if (energy - rate * dt.asSeconds() >= 0.00) {
         energy -= rate * dt.asSeconds();
@@ -73,16 +78,29 @@ void Bee::move(sf::Time dt) {
 }
 
 void Bee::targetMove(sf::Time dt) {
-    speed = directionTo(target)/directionTo(target).length();
-    Vec2d possible_position (getPosition() + speed * dt.asSeconds());
+    if (avoidanceClock_ <= sf::Time::Zero) {
+        speed = directionTo(target)/directionTo(target).length()*speed.length();
+    }
+    else {
+        avoidanceClock_ -= dt;
+    }
 
+    Vec2d possible_position (getPosition() + speed * dt.asSeconds());
     if (getAppEnv().IsFlyable(possible_position)) {
         Collider::move(speed * dt.asSeconds());
     }
     else {
-        speed.rotate(PI/4);
+        avoidanceClock_ = sf::seconds(getConfig()["moving behaviour"]["target"]["avoidance delay"].toInt());
+        double beta (0.00);
+        if (bernoulli(0.5) == true) {
+            beta = PI / 4;
+        }
+        else {
+            beta = - PI / 4;
+        }
+        speed.rotate(beta);
     }
-    // TO DO : to complete
+
 
 }
 
@@ -111,18 +129,9 @@ void Bee::randomMove(sf:: Time dt) {              // déplace l'abeille
     }
 }
 
-double Bee::get_energy() {              // retourne le niveau d'énergie
+double Bee::get_energy() const {              // retourne le niveau d'énergie
     return energy;
 }
-
-double Bee::get_pollen(){
-    return pollen;
-}
-
-void Bee::onState (state const& s, sf::Time dt) {}
-
-
-void Bee::onEnterState(state const& s)  {}
 
 void Bee::change_mode(std::string newmode) {
     mode = newmode;
@@ -136,15 +145,19 @@ void Bee::change_memory(Vec2d const& newmemory) {
     memory = newmemory;
 }
 
-void Bee::change_value_memory() {
-    if (memory_value == false) { memory_value = true; }
-    else { memory_value = false; }
+void Bee::change_value_memory(bool b) {
+    memory_value = b;
 }
 
 
-bool Bee::get_value_memory() {
+bool Bee::get_value_memory() const {
     return memory_value;
 }
+
+Vec2d Bee::get_memory() const {
+    return memory;
+}
+
 
 Vec2d Bee::home_position () {
     return Home.getPosition();
@@ -154,18 +167,21 @@ double Bee::home_radius() {
     return Home.getRadius();
 }
 
-Vec2d Bee::learnFlowerLocation(const Vec2d& flowerPosition){
-    return flowerPosition;
-}
 
 void Bee::gain_energy(double qte) {
     Home.takeNectar(qte);
     energy += qte;
 }
 
-void Bee::dropPollen(double qte){
+void Bee::learnFlowerLocation(const Vec2d& flowerPosition) {
+    memory = flowerPosition;
+    memory_value = true;
+}
+
+void Bee::dropPollen(double qte) {
     Home.dropPollen(qte);
 }
 
-void Bee::takePollen(double qte){
-}
+
+
+

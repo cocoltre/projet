@@ -8,17 +8,20 @@
 #include "CFSM.hpp"
 #pragma once
 
+class ScoutBee;
+class WorkerBee;
 
 class Bee: public Collider, public Drawable, public Updatable, public CFSM {
 private:
     Hive& Home;
     Vec2d speed;
     double energy;
-    double pollen;
     Vec2d memory;
     bool memory_value;
     std::string mode;
     Vec2d target;
+    sf::Time avoidanceClock_;
+
 
 public:
     Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states);
@@ -29,28 +32,29 @@ public:
     void randomMove(sf:: Time dt);
     bool Isdead ();
     virtual j::Value getConfig() const& = 0 ;
-    void drawOn(sf::RenderTarget& target) const;
+    virtual void drawOn(sf::RenderTarget& target) const;
     void update(sf::Time dt);
-    double get_energy();
-    double get_pollen();
+    double get_energy() const;
 
-    virtual void onState (state const& s, sf::Time dt);
-    virtual void onEnterState(state const& s)  ;
+    virtual void onState (state const& s, sf::Time dt) = 0;
+    virtual void onEnterState(state const& s)  = 0;
     void change_mode(std::string newmode);
     void change_target(Vec2d const& newtarget);
     void change_memory(Vec2d const& newmemory);
-    void change_value_memory();
-    bool get_value_memory();
+    void change_value_memory(bool b);
+    bool get_value_memory() const;
+    Vec2d get_memory() const;
 
     Vec2d home_position ();
     double home_radius();
 
-    Vec2d learnFlowerLocation(const Vec2d& flowerPosition);
+    void learnFlowerLocation(const Vec2d& flowerPosition);
+    void dropPollen(double qte) ;
 
     void gain_energy(double qte);
-    void dropPollen(double qte);
-    void takePollen(double qte);
-
+    virtual void interact(Bee* other) = 0;
+    virtual void interactWith(ScoutBee* scouting) = 0;
+    virtual void interactWith(WorkerBee* working) = 0;
 
 
 };

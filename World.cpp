@@ -300,7 +300,7 @@ void World::smooth () {             // lisse les différentes zones 1 fois
                     }
                 }
 
-                if (y == nbcells_ - 1) {                                                            // si la cellule se trouve sur la dernière ligne (en bas) du terrain
+                else if (y == nbcells_ - 1) {                                                            // si la cellule se trouve sur la dernière ligne (en bas) du terrain
                     t = 0.00;
                     if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
                     if (copie_de_cells_[index + 1] == Kind::Water) { ++t; }
@@ -324,7 +324,7 @@ void World::smooth () {             // lisse les différentes zones 1 fois
                     }
                 }
 
-                if (x == nbcells_ - 1) {                                                            // si la cellule se trouve sur la dernière colonne (à droite) du terrain
+                else if (x == nbcells_ - 1) {                                                            // si la cellule se trouve sur la dernière colonne (à droite) du terrain
                     t = 0.00;
                     if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
                     if (copie_de_cells_[index - nbcells_] == Kind::Water) { ++t; }
@@ -336,7 +336,7 @@ void World::smooth () {             // lisse les différentes zones 1 fois
                     }
                 }
 
-                if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {                // pour l'intérieur du terrain
+                else if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {                // pour l'intérieur du terrain
                     t = 0.00;
                     if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
                     if (copie_de_cells_[index + 1] == Kind::Water) { ++t; }
@@ -370,7 +370,7 @@ void World::smooth () {             // lisse les différentes zones 1 fois
                     }
                 }
 
-                if (y == nbcells_ - 1) {                                                    // si la cellule se trouve sur la dernière ligne (en bas) du terrain
+                else if (y == nbcells_ - 1) {                                                    // si la cellule se trouve sur la dernière ligne (en bas) du terrain
                     t = 0.00;
                     if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
                     if (copie_de_cells_[index + 1] == Kind::Grass) { ++t; }
@@ -394,7 +394,7 @@ void World::smooth () {             // lisse les différentes zones 1 fois
                     }
                 }
 
-                if (x == nbcells_ - 1) {                                                    // si la cellule se trouve sur la dernière colonne (à droite) du terrain
+                else if (x == nbcells_ - 1) {                                                    // si la cellule se trouve sur la dernière colonne (à droite) du terrain
                     t = 0.00;
                     if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
                     if (copie_de_cells_[index - nbcells_] == Kind::Grass) { ++t; }
@@ -406,7 +406,7 @@ void World::smooth () {             // lisse les différentes zones 1 fois
                     }
                 }
 
-                if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {       // pour l'intérieur du terrain
+                else if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {       // pour l'intérieur du terrain
                     t = 0.00;
                     if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
                     if (copie_de_cells_[index + 1] == Kind::Grass) { ++t; }

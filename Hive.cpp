@@ -26,14 +26,31 @@ Bee* Hive::addBee(double scoutProb) {                                   // peupl
 }
 
 void Hive::update(sf::Time dt) {                        // fait évoluer toutes les abeilles de la ruche à chaque pas de temps dt
+    std::vector<Bee*> vec;
     for (size_t i(0); i < Bees.size(); ++i) {
-       Bees[i]->update(dt);
-       if (Bees[i]->get_energy() == 0.00) {
-           delete Bees[i];
-           Bees[i] = nullptr;
-       }
+        Bees[i]->update(dt);
+        if (Bees[i]->get_energy() == 0.00) {
+            delete Bees[i];
+            Bees[i] = nullptr;
+        }
+        else if (Bees[i]->getState() == WorkerBee::get_in_hive() or Bees[i]->getState() == ScoutBee::get_in_hive()) {
+            vec.push_back(Bees[i]);
+
+        }
     }
     Bees.erase(std::remove(Bees.begin(), Bees.end(), nullptr), Bees.end());
+
+    if (vec.size() >= 2) {
+        for (size_t i(0); i < vec.size()-1; ++i) {
+            for (size_t j(i+1); j < vec.size(); ++j)
+            vec[i]->interact(vec[j]);
+        }
+    }
+
+
+    if (pollen >= getAppConfig().hive_reproduction_nectar_threshold and (int)Bees.size() < getAppConfig().hive_reproduction_max_bees) {
+        addBee(getAppConfig().hive_reproduction_scout_proba);
+    }
 
 }
 
