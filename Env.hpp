@@ -34,8 +34,8 @@ public :
     double find_humidity (Vec2d p);
 
     bool addHiveAt(const Vec2d& position);
-    Hive* getCollidingHive(const Collider& body);
-    Flower* getCollidingFlower(const Collider& body);
+    Hive* getCollidingHive(const Collider& body) const;
+    Flower* getCollidingFlower(const Collider& body) const;
     void delete_hives ();
     bool IsThereAHive (const Vec2d& p, double radius);
 
@@ -43,5 +43,8 @@ public :
     bool IsThereAFlower (const Vec2d& p, double radius);
 
     bool IsFlyable (const Vec2d& p);
+
+    std::vector <Flower*> get_flowers();
+
 
 };

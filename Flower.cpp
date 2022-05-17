@@ -9,12 +9,12 @@ Flower::Flower (Vec2d position, double arg_diam, double arg_pollen) : Collider(p
 
 double Flower::takePollen(double amount) {       // prélève une quantité donnée de pollen et retourne la quantité qui a pu être prélevée
     if (amount < pollen) {
-        this->pollen -= amount;
+        pollen -= amount;
         return amount;
     }
     else {
         int pollen_init (pollen);
-        this->pollen = 0.00;
+        pollen = 0.00;
         return pollen_init;
     }
 }
@@ -30,7 +30,7 @@ void Flower::update(sf::Time dt) {                                  // calcule l
     double seuil (getAppConfig().flower_growth_threshold);
     double humidity = getAppEnv().find_humidity(getPosition());
     if (humidity >= seuil) {                                        // 1er pas
-        this->pollen += dt.asSeconds() * log(humidity/seuil);
+        pollen += dt.asSeconds() * log(humidity/seuil);
     }
 
     double qt_seuil (getAppConfig().flower_growth_split);
@@ -42,6 +42,7 @@ void Flower::update(sf::Time dt) {                                  // calcule l
         do {
             dist = uniform(1.5*getRadius(), 2.5*getRadius());
             pp = getPosition() + Vec2d::fromRandomAngle() * dist;
+            ++i;
         }
         while (getAppEnv().addFlowerAt(pp) == false and i < 100);
         pollen /=2;

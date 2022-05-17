@@ -4,13 +4,25 @@
 #include "Application.hpp"
 #include "Config.hpp"
 #include "Utility/Utility.hpp"
+#include "Utility/Vec2d.hpp"
+#include "Random/Random.hpp"
+#include "WorkerBee.hpp"
+#include "ScoutBee.hpp"
 
 Hive::Hive (Vec2d position, double arg_radius) : Collider(position, arg_radius),
     pollen(getAppConfig().hive_initial_nectar) {}; // constructeur
 
 
-void Hive::addBee() {                                   // peuple la ruche
-    Bees.push_back(new Bee(*this, getPosition(), 10.0, 10.0, 10.0));
+Bee* Hive::addBee(double scoutProb) {                                   // peuple la ruche
+    Vec2d newposition (getPosition() + Vec2d::fromRandomAngle()*uniform(0.00, getRadius()));
+    if (bernoulli(scoutProb) == true) {
+        Bees.push_back(new ScoutBee(*this, newposition));
+    }
+    else {
+        Bees.push_back(new WorkerBee(*this, newposition));
+    }
+    return Bees.back();
+
 }
 
 void Hive::update(sf::Time dt) {                        // fait évoluer toutes les abeilles de la ruche à chaque pas de temps dt
@@ -51,12 +63,12 @@ void Hive::dropPollen(double qte) {                     // augmente de qte la qu
 
 double Hive::takeNectar(double qte) {                     // prélève une quantité qte de nectar de la ruche
     if (qte < pollen) {
-        this->pollen -= qte;
+        pollen -= qte;
         return qte;
     }
     else {
         int pollen_init (pollen);
-        this->pollen = 0.00;
+        pollen = 0.00;
         return pollen_init;
     }
 }

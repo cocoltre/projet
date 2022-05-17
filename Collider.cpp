@@ -78,7 +78,7 @@ double Collider::distanceTo (const Collider& to) const { // calcule la longueur 
 }
 
 void Collider::move (const Vec2d& dx) {         // modifie la position du centre d'un Collider à partir d'un vecteur
-    this->center = clamp(this->center + dx);    // réajuste ses coordonnées dans le monde torique
+    center = clamp(center + dx);    // réajuste ses coordonnées dans le monde torique
 }
 
 void Collider::operator+= (const Vec2d& position2) { // opérateur +=, fonction similaire à la méthode move
@@ -93,17 +93,11 @@ bool Collider::isColliderInside (const Collider& other) const { // détermine si
 }
 
 bool Collider::isColliding (const Collider& other) const { // détermine s'il y a collision entre deux Colliders
-    if (distanceTo(other) <= other.radius + radius) {
-        return true;
-    }
-    else return false;
+    return (distanceTo(other) <= other.radius + radius) ;
 }
 
 bool Collider::isPointInside (const Vec2d& point) const { // détermine si un point est à l'intérieur d'un Collider
-    if (distanceTo(point) <= radius) {
-        return true;
-    }
-    else return false;
+    return (distanceTo(point) <= radius) ;
 }
 
 bool Collider::operator> (const Collider& body2) const { // détermine si un Collider est à l'intérieur d'un autre
@@ -119,7 +113,7 @@ bool Collider::operator> (const Vec2d& point) const { // détermine si un point 
 }
 
 Vec2d Collider::getPosition() const { // renvoie la position du centre d'un Collider
-    return this->center;
+    return center;
 }
 
 double Collider::getRadius() const { // renvoie le rayon d'un Collider

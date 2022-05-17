@@ -27,7 +27,7 @@ void Env::update(sf::Time dt) { // fait évoluer l'environnement sur une périod
 }
 
 void Env::drawOn(sf::RenderTarget& target) const { // permet de dessiner le contenu de l'environnement
-    this->world.drawOn(target);
+    world.drawOn(target);
     if (Flowers.size() != 0) {
         for (size_t i(0); i < Flowers.size(); ++i) {
             Flowers[i]->drawOn(target);
@@ -44,7 +44,7 @@ void Env::reset() { // permet de regénèrer l'environnement
     delete_flowers();
     delete_hives();
     flowergenerator.reset();
-    this->world.reset();
+    world.reset();
 }
 
 Env::Env () { // constructeur par défaut
@@ -56,7 +56,7 @@ void Env::loadWorldFromFile() { // charge l'environnement depuis un fichier
     delete_hives();
     flowergenerator.reset();
     try {
-        this->world.loadFromFile();
+        world.loadFromFile();
     }
     catch (const std::runtime_error& e) {
         std::cerr << e.what();
@@ -66,7 +66,7 @@ void Env::loadWorldFromFile() { // charge l'environnement depuis un fichier
 
 void Env::saveWorldToFile() {
     try {
-        this->world.saveToFile();
+        world.saveToFile();
     }
     catch (const std::runtime_error& e) {
         std::cerr << e.what();
@@ -74,7 +74,7 @@ void Env::saveWorldToFile() {
 }
 
 float Env::getSize () const { // renvoie la taille du terrain
-    return this->world.getSize();
+    return world.getSize();
 }
 
 void Env::resetControls() {} // remet à zéro les contrôles
@@ -136,7 +136,7 @@ bool Env::addHiveAt(const Vec2d& position) {        // ajoute une ruche à l'ens
     }
 }
 
-Hive* Env::getCollidingHive(const Collider& body) {         // retourne un pointeur sur une ruche de l'environnement en collision avec le body ou nullptr dans le cas contraire
+Hive* Env::getCollidingHive(const Collider& body) const {         // retourne un pointeur sur une ruche de l'environnement en collision avec le body ou nullptr dans le cas contraire
     auto const& size (getAppConfig().hive_manual_size);
     auto const& factor (getAppConfig().hiveable_factor);
     for (size_t i(0); i < Hives.size(); ++i) {
@@ -147,7 +147,7 @@ Hive* Env::getCollidingHive(const Collider& body) {         // retourne un point
     return nullptr;
 }
 
-Flower* Env::getCollidingFlower(const Collider& body) {    // retourne une fleur de l'environnement en collision avec le body ou nullptr dans le cas contraire
+Flower* Env::getCollidingFlower(const Collider& body) const {    // retourne une fleur de l'environnement en collision avec le body ou nullptr dans le cas contraire
     for (size_t i(0); i < Flowers.size(); ++i) {
         if (body | Collider(Flowers[i]->getPosition(), Flowers[i]->getRadius())) {
             return Flowers[i];
@@ -282,4 +282,8 @@ void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {   
 
 bool Env::IsFlyable(const Vec2d& p) {       // retourne true si le sol n'est pas de roche
     return world.IsFlyable(p);
+}
+
+std::vector <Flower*> Env::get_flowers() {
+    return Flowers;
 }

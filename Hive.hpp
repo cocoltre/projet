@@ -20,11 +20,14 @@ public :
     ~Hive () {              // destructeur
         delete_bees();
     };
-    void addBee();
+
     void update(sf::Time dt);
     void drawOn(sf::RenderTarget& targetWindow) const;
     void dropPollen(double qte);
     double takeNectar(double qte);
     void delete_bees ();
+
+protected :
+    Bee* addBee(double scoutProb=0);
 
 };

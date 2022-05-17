@@ -35,10 +35,10 @@ void World::drawOn (sf::RenderTarget& target) const {             // affiche les
 
 
 void World::reloadConfig () {                                   // donne des valeurs aux attributs (sauf vertexes)
-    this->nbcells_ = getAppConfig().world_cells;
-    this->cell_size = getAppConfig().world_size / nbcells_;
+    nbcells_ = getAppConfig().world_cells;
+    cell_size = getAppConfig().world_size / nbcells_;
     std::vector<Kind> vec (nbcells_*nbcells_, Kind::Rock);
-    this->cells_ = vec;
+    cells_ = vec;
 
     const double eta (getAppConfig().world_humidity_init_level);    // déclaration et initialisation de constantes
     const double lambda (getAppConfig().world_humidity_decay_rate);
@@ -48,14 +48,14 @@ void World::reloadConfig () {                                   // donne des val
     while (eta * exp(-hr/lambda) > seuil) {
         ++ hr;
     }
-    this->humidityRange_ = hr;
+    humidityRange_ = hr;
 
     std::vector<double> vec2 (nbcells_*nbcells_);
-    this->humid_cells = vec2;
+    humid_cells = vec2;
 
     nb_waterSeeds = getAppConfig().world_nb_water_seeds;                    // compte le nombre de graines d'eau
     nb_grassSeeds = getAppConfig().world_nb_grass_seeds;                    // compte le nombre de graines d'herbe
-    this->seeds_ = std::vector<Seed> (nb_waterSeeds + nb_grassSeeds);       // donne la bonne taille à l'ensemble seeds_
+    seeds_ = std::vector<Seed> (nb_waterSeeds + nb_grassSeeds);       // donne la bonne taille à l'ensemble seeds_
 
 }
 
@@ -173,11 +173,11 @@ void World::loadFromFile () {                   // pour charger un monde depuis 
     else {
         std::string phrase;
         getline(entree, phrase);                // lit la 1ère ligne : le nombre de cellules par ligne
-        this->nbcells_ = std::stoi(phrase);
+        nbcells_ = std::stoi(phrase);
 
         std::string phrase2;
         getline(entree, phrase2);               // lit la 2ème ligne : la taille des cellules
-        this->cell_size = std::stoi(phrase2);
+        cell_size = std::stoi(phrase2);
 
         std::string phrase3;                    // lit la 3ème ligne : la texture de chaque celluule
         getline(entree, phrase3);
@@ -186,7 +186,7 @@ void World::loadFromFile () {                   // pour charger un monde depuis 
         for (int i(0); i< nbcells_*nbcells_; ++i) {
             vec[i] = static_cast<Kind>(std::stoi(std::string(1, phrase3[i]))) ;
         }
-        this->cells_ = vec;
+        cells_ = vec;
 
         std::string phrase4;
         std::string phrase_cut("");
@@ -203,7 +203,7 @@ void World::loadFromFile () {                   // pour charger un monde depuis 
             vec2[i] = std::stod(phrase_cut);
             phrase_cut.clear();
         }
-        this->humid_cells = vec2;
+        humid_cells = vec2;
 
         std::cout << file << " " << std::endl;
 
@@ -480,10 +480,10 @@ void World::set_humidity () {       // initialise le taux d'humidité de chaque 
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
             if (cells_[x + y*nbcells_] == Kind::Water) {                                                // si la cellule est d'eau
-                for (int nx(x - this->humidityRange_); nx < x + this->humidityRange_ + 2; ++ nx) {      // alors pour toutes les cellules de son voisinage
-                    for (int ny(y - this->humidityRange_); ny < y + humidityRange_ + 2; ++ ny) {
+                for (int nx(x - humidityRange_); nx < x + humidityRange_ + 2; ++ nx) {      // alors pour toutes les cellules de son voisinage
+                    for (int ny(y - humidityRange_); ny < y + humidityRange_ + 2; ++ ny) {
                         dist = std::hypot(x-nx, y-ny);                                                  // on calcule la distance les séparant,
-                        this->humid_cells[nx + ny*nbcells_] += eta*exp(-dist/lambda);                   // puis le taux d'humité de la cellule change
+                        humid_cells[nx + ny*nbcells_] += eta*exp(-dist/lambda);                   // puis le taux d'humité de la cellule change
                     }
                 }
             }
