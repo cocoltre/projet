@@ -4,15 +4,17 @@
 #include <Utility/Vec2d.hpp>
 #include <Random/Random.hpp>
 
-Bee::Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states, Vec2d* memory2)  // constructeur
+Bee::Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states)  // constructeur
     : Collider(position, arg_rad*2),
       CFSM(possible_states),
       Home(Home),
       speed(Vec2d::fromRandomAngle()*ScalSpeed),
       energy(energy2),
-      memory(memory2),
+      memory(0.00, 0.00),
+      memory_value(false),
       mode("au repos"),
       target(position)
+
 {}
 
 
@@ -113,6 +115,9 @@ double Bee::get_energy() {              // retourne le niveau d'énergie
     return energy;
 }
 
+void Bee::onState (state const& s, sf::Time dt) {}
+
+
 void Bee::onEnterState(state const& s)  {}
 
 void Bee::change_mode(std::string newmode) {
@@ -123,12 +128,18 @@ void Bee::change_target(Vec2d const& newtarget) {
     target = newtarget;
 }
 
-void Bee::change_memory(Vec2d const* newmemory) {
-    memory = &newmemory;
+void Bee::change_memory(Vec2d const& newmemory) {
+    memory = newmemory;
 }
 
-Vec2d* Bee::get_memory() {
-    return memory;
+void Bee::change_value_memory() {
+    if (memory_value == false) { memory_value = true; }
+    else { memory_value = false; }
+}
+
+
+bool Bee::get_value_memory() {
+    return memory_value;
 }
 
 Vec2d Bee::home_position () {

@@ -8,7 +8,7 @@ state const ScoutBee::BACK_TO_HIVE = createUid();
 
 
 ScoutBee::ScoutBee(Hive& Home, const Vec2d& position) :
-    Bee(Home, position, getAppConfig().scout_size, getAppConfig().scout_initial_energy, getAppConfig().scout_speed, {IN_HIVE, FLOWERS_SEARCH, BACK_TO_HIVE}, nullptr) {}
+    Bee(Home, position, getAppConfig().scout_size, getAppConfig().scout_initial_energy, getAppConfig().scout_speed, {IN_HIVE, FLOWERS_SEARCH, BACK_TO_HIVE}) {}
 
 j::Value ScoutBee::getConfig() const& {
     return getValueConfig()["simulation"]["bees"]["scout"];
@@ -19,7 +19,7 @@ void ScoutBee::onEnterState(state const& s)  {
         change_mode("au repos");
     }
     else if (s == FLOWERS_SEARCH) {
-        change_memory(nullptr);
+        change_value_memory();
         change_mode("aléatoire");
     }
     else if (s == BACK_TO_HIVE) {
@@ -34,7 +34,7 @@ void ScoutBee::onState (state const& s, sf::Time dt) {
         if (get_energy() < getAppConfig().scout_energy_to_leave_hive) {
             gain_energy(dt.asSeconds() * getAppConfig().scout_eating_rate);
         }
-        else if (get_memory() == nullptr) {
+        else if (get_value_memory() == false) {
             nextState();
         }
     }
@@ -54,7 +54,7 @@ void ScoutBee::onState (state const& s, sf::Time dt) {
                 }
             }
         }
-        change_memory(getCollidingFlowerPosition(*maxpollen));
+        change_memory(*getCollidingFlowerPosition(*maxpollen));
     }
     else if ((s == BACK_TO_HIVE) and (Collider(home_position(), home_radius()) > *this)) {
         nextState();
@@ -63,5 +63,5 @@ void ScoutBee::onState (state const& s, sf::Time dt) {
 }
 
 Vec2d const* ScoutBee::getCollidingFlowerPosition(Collider const& body) {
-
+    return new Vec2d(body.getPosition());
 }

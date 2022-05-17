@@ -14,12 +14,13 @@ private:
     Hive& Home;
     Vec2d speed;
     double energy;
-    Vec2d* memory;
+    Vec2d memory;
+    bool memory_value;
     std::string mode;
     Vec2d target;
 
 public:
-    Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states, Vec2d* memory2);
+    Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states);
     ~Bee () {};
 
     void move(sf::Time dt);
@@ -35,8 +36,9 @@ public:
     virtual void onEnterState(state const& s)  ;
     void change_mode(std::string newmode);
     void change_target(Vec2d const& newtarget);
-    void change_memory(Vec2d const* newmemory);
-    Vec2d* get_memory();
+    void change_memory(Vec2d const& newmemory);
+    void change_value_memory();
+    bool get_value_memory();
 
     Vec2d home_position ();
     double home_radius();

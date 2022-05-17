@@ -11,5 +11,8 @@ public :
     WorkerBee (Hive& Home, const Vec2d& position);
     ~WorkerBee() {}
     virtual j::Value getConfig() const&;
+    virtual void onState (state const& s, sf::Time dt);
+    virtual void onEnterState(state const& s)  ;
+
 
 };
