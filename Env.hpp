@@ -9,37 +9,143 @@
 
 class Env : public Drawable, public Updatable {
 private :
-    World world;
-    std::vector <Flower*> Flowers;
-    FlowerGenerator flowergenerator;
-    std::vector <Hive*> Hives;
+    World world;    // the Env's World
+    std::vector <Flower*> Flowers;  // the Env's Flowers' collection
+    FlowerGenerator flowergenerator;    // the Env's FlowerGenerator
+    std::vector <Hive*> Hives;      // the Env's Hives' collection
 
 public :
-    Env ();     // constructeur par défaut
-    ~Env () {   // destructeur
-        delete_flowers();
-        delete_hives();
+
+    // CONSTRUCTOR AND DESTRUCTORS
+    /*!
+     * \brief constructor of an Env object fully set up by default
+     */
+    Env ();     // constructor by default
+
+    ~Env () {   // destructor
+        delete_flowers();       // delete all the Flowers' collection
+        delete_hives();         // delete all the Hives' collection
     }
+
+    /*!
+     * \brief delete all the flowers' collection
+     */
+    void delete_flowers ();
+
+    /*!
+     * \brief delete all the Hives' collection
+     */
+    void delete_hives ();
+
+
+    // RELATIVE TO EVOLUTION
+    /*!
+     * \brief update the Env's evolution
+     * \param dt the small amount of time between each evolution
+     */
     void update(sf::Time dt);
+
+    /*!
+     * \brief draw the Env
+     * \param target the environment where to draw
+     */
     void drawOn(sf::RenderTarget& target) const ;
+
+    /*!
+     * \brief draw a zone around a specific position, whose color determines whether the position can host a new Flower or not
+     * \param target the environment where to draw
+     * \param position the specific position
+     */
+    void drawFlowerZone(sf::RenderTarget& target, Vec2d const& position);
+
+    /*!
+     * \brief draw a zone around a specific position, whose color determines whether the position can host a new Hive or not
+     * \param target the environment where to draw
+     * \param position the specific position
+     */
+    void drawHiveableZone(sf::RenderTarget& target, Vec2d const& position);
+
+    /*!
+     * \brief reset the Env
+     */
     void reset();
-    void loadWorldFromFile();
-    void saveWorldToFile();
-    float getSize () const;
+
+    /*!
+     * \brief reset all controls
+     */
     void resetControls();
 
-    bool addFlowerAt (const Vec2d& p);
-    void delete_flowers ();
-    void drawFlowerZone(sf::RenderTarget& target, Vec2d const& position);
+
+    // RELATIVE TO FILE MANAGEMENT
+    /*!
+     * \brief load a World from a file
+     */
+    void loadWorldFromFile();
+
+    /*!
+     * \brief save the World to a specific file
+     */
+    void saveWorldToFile();
+
+
+    // GETTERS
+    /*!
+     * \brief get the Env's World's size
+     * \return the Env's World's size
+     */
+    float getSize () const;
+
+    /*!
+     * \brief get the Env's Flowers' collection
+     * \return the Env's Flowers' collection
+     */
+    std::vector <Flower*> get_flowers();
+
+    /*!
+     * \brief find the humidity of a specific position
+     * \param p the specific position
+     * \return the humidity of the specific position
+     */
     double find_humidity (Vec2d p);
 
-    bool addHiveAt(const Vec2d& position);
-    Hive* getCollidingHive(const Collider& body);
-    Flower* getCollidingFlower(const Collider& body);
-    void delete_hives ();
-    bool IsThereAHive (const Vec2d& p);
 
-    void drawHiveableZone(sf::RenderTarget& target, Vec2d const& position);
-    bool IsThereAFlower (const Vec2d& p);
+    // TESTS
+    /*!
+     * \brief check if a specific position is made of rocks meaning that a Bee cannot fly there
+     * \param p the specific position
+     * \return true if the position is rocks
+     */
+    bool IsFlyable (const Vec2d& p);
+
+    /*!
+     * \brief find a Hive in the Env that is colliding with a specific Collider
+     * \param body the specific Collider
+     * \return a pointer on a Hive colliding with the body, nullptr otherwise
+     */
+    Hive* getCollidingHive(const Collider& body) const;
+
+    /*!
+     * \brief find a Flower in the Env that is colliding with a specific Collider
+     * \param body the specific Collider
+     * \return a pointer on a flower colliding with the body, nullptr otherwise
+     */
+    Flower* getCollidingFlower(const Collider& body) const;
+
+
+    // CHANGE THE ENV
+    /*!
+     * \brief add a Flower at a specific position if it is possible
+     * \param p the specific position
+     * \return true if the adding was successful
+     */
+    bool addFlowerAt (const Vec2d& p);
+
+    /*!
+     * \brief add a Hive at a specific position if it is possible
+     * \param position the specific position
+     * \return true if the adding was successful
+     */
+    bool addHiveAt(const Vec2d& position);
+
 
 };
