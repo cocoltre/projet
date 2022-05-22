@@ -106,7 +106,7 @@ void Env::drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) {   
     Vec2d TopBottom ((position.x()+size*factor), (position.y()+size*factor));
     Vec2d newLeftTop (world.coord(LeftTop));                                    // coordinates in the world made of cells (without taking into account their size)
     Vec2d newTopBottom (world.coord(TopBottom));
-    double world_size (world.get_nbcells_()*world.get_cell_size());             // width of the world if we take into account the size of the cells
+    double world_size (world.getSize());             // width of the world if we take into account the size of the cells
 
     if ((position.x() > 0.00) and (position.y() > 0.00) and (position.x() < world_size) and (position.y() < world_size)) { // if the cursor is inside the world
         // left border
@@ -241,7 +241,7 @@ std::vector <Flower*> Env::get_flowers() const {      // get the Env's Flowers' 
 
 double Env::find_humidity (Vec2d p) const {           // find the humidity of a specific position
     p = world.coord(p);
-    return world.get_humid_cells()[p.x() + p.y() * world.get_nbcells_()];
+    return world.get_humid_cells()[world.index_cell(p.x(), p.y())];
 }
 
 
