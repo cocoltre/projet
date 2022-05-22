@@ -66,7 +66,7 @@ void Env::drawOn(sf::RenderTarget& target) const {          // draw the Env
     }
 }
 
-void Env::drawFlowerZone(sf::RenderTarget& target, Vec2d const& position) {                     // draw a zone around a specific position, whose color determines
+void Env::drawFlowerZone(sf::RenderTarget& target, Vec2d const& position) const {                     // draw a zone around a specific position, whose color determines
                                                                                                 // whether the position can host a new Flower or not
     double size = getValueConfig()["simulation"]["env"]["initial"]["flower"]["size"]["manual"].toDouble();
     double thickness (3.0);
@@ -235,18 +235,18 @@ float Env::getSize () const {                   // get the Env's World's size
     return world.getSize();
 }
 
-std::vector <Flower*> Env::get_flowers() {      // get the Env's Flowers' collection
+std::vector <Flower*> Env::get_flowers() const {      // get the Env's Flowers' collection
     return Flowers;
 }
 
-double Env::find_humidity (Vec2d p) {           // find the humidity of a specific position
+double Env::find_humidity (Vec2d p) const {           // find the humidity of a specific position
     p = world.coord(p);
     return world.get_humid_cells()[p.x() + p.y() * world.get_nbcells_()];
 }
 
 
 // TESTS
-bool Env::IsFlyable(const Vec2d& p) {           // check if a specific position is made of rocks meaning that a Bee cannot fly there
+bool Env::IsFlyable(const Vec2d& p) const {           // check if a specific position is made of rocks meaning that a Bee cannot fly there
     return world.IsFlyable(p);
 }
 

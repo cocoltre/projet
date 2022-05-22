@@ -22,7 +22,7 @@ public :
      */
     WorkerBee (Hive& Home, const Vec2d& position);
 
-    ~WorkerBee() {} // destructor
+    virtual ~WorkerBee() {} // destructor
 
     /*!
      * \brief get the configuration specific to a WorkerBee

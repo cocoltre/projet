@@ -36,15 +36,21 @@ public :
     /*!
      * \brief construct a World object fully set up by default
      */
-    World() { loadFromFile(); } // constructor by default
+    World(); // constructor by default
 
     ~World () {} // destructor
 
 
     // GETTERS
     /*!
-     * \brief get this World's size
-     * \return get this World's size
+     * \brief get this World's full size, meaning the total number of cells
+     * \return the total number of cells
+     */
+    int get_full_size() const;
+
+    /*!
+     * \brief get this World's width's size
+     * \return this World's width's size
      */
     float getSize () const;
 
@@ -52,25 +58,25 @@ public :
      * \brief get this World's collection of humidity levels
      * \return this World's collection of humidity levels
      */
-    std::vector<double> get_humid_cells();
+    std::vector<double> get_humid_cells() const;
 
     /*!
      * \brief get this World's number of cells
      * \return this World's number of cells
      */
-    int get_nbcells_();
+    int get_nbcells_() const ;
 
     /*!
      * \brief get this World's collection of cells
      * \return this World's collection of cells
      */
-    std::vector<Kind> get_cells_();
+    std::vector<Kind> get_cells_() const ;
 
     /*!
      * \brief get this World's cell size
      * \return this World's cell size
      */
-    float get_cell_size();
+    float get_cell_size() const ;
 
     /*!
      * \brief create a collection of all the indexes inside a specific rectangle
@@ -160,14 +166,14 @@ public :
      * \param p the specific position
      * \return true if the position is made of grass
      */
-    bool isGrowable(const Vec2d& p);
+    bool isGrowable(const Vec2d& p) const;
 
     /*!
      * \brief check if a position is not made of rock (meaning that bees can fly there)
      * \param p the specific position
      * \return true if the position is not made of rock
      */
-    bool IsFlyable(Vec2d const& p);
+    bool IsFlyable(Vec2d const& p) const;
 
     /*!
      * \brief check if an area from a position is entirely made of grass (meaning that Hives can grow there)
@@ -175,7 +181,7 @@ public :
      * \param radius the radius of the area
      * \return true if the area from the position is entirely made of grass
      */
-    bool isHiveable(const Vec2d& position, double radius);
+    bool isHiveable(const Vec2d& position, double radius) ;
 
 
    // RELATIVE TO COORDINATES
@@ -193,6 +199,13 @@ public :
      */
     Vec2d clamp (const Vec2d& vec);
 
+    /*!
+     * \brief get the index of the cell from a vector
+     * \param x x coordinate of the vector
+     * \param y y coordinate of the vector
+     * \return the index of the cell from a vector
+     */
+    int index_cell (int x, int y) const;
 
     // RELATIVE TO HUMIDITY
     /*!

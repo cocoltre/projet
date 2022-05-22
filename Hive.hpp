@@ -21,7 +21,7 @@ public :
      * \param position this Hive's position
      * \param arg_radius this Hive's radius
      */
-    Hive (Vec2d position, double arg_radius);
+    Hive (const Vec2d& position, double arg_radius);
 
     /*!
      * \brief delete the copy's constructor
@@ -36,7 +36,7 @@ public :
      */
     Hive& operator=(const Hive& temp_obj) = delete;
 
-    ~Hive () {              // destructor
+    virtual ~Hive () {              // destructor
         delete_bees();      // destroy all the Bees the Hive contains
     }
 

@@ -56,14 +56,14 @@ public :
      * \param target the environment where to draw
      * \param position the specific position
      */
-    void drawFlowerZone(sf::RenderTarget& target, Vec2d const& position);
+    void drawFlowerZone(sf::RenderTarget& target, Vec2d const& position) const;
 
     /*!
      * \brief draw a zone around a specific position, whose color determines whether the position can host a new Hive or not
      * \param target the environment where to draw
      * \param position the specific position
      */
-    void drawHiveableZone(sf::RenderTarget& target, Vec2d const& position);
+    void drawHiveableZone(sf::RenderTarget& target, Vec2d const& position) ;
 
     /*!
      * \brief reset the Env
@@ -99,14 +99,14 @@ public :
      * \brief get the Env's Flowers' collection
      * \return the Env's Flowers' collection
      */
-    std::vector <Flower*> get_flowers();
+    std::vector <Flower*> get_flowers() const;
 
     /*!
      * \brief find the humidity of a specific position
      * \param p the specific position
      * \return the humidity of the specific position
      */
-    double find_humidity (Vec2d p);
+    double find_humidity (Vec2d p) const;
 
 
     // TESTS
@@ -115,7 +115,7 @@ public :
      * \param p the specific position
      * \return true if the position is rocks
      */
-    bool IsFlyable (const Vec2d& p);
+    bool IsFlyable (const Vec2d& p) const ;
 
     /*!
      * \brief find a Hive in the Env that is colliding with a specific Collider
@@ -146,6 +146,5 @@ public :
      * \return true if the adding was successful
      */
     bool addHiveAt(const Vec2d& position);
-
 
 };

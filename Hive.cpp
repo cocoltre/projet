@@ -10,7 +10,7 @@
 #include "ScoutBee.hpp"
 
 // CONSTRUCTORS AND DESTRUCTORS
-Hive::Hive (Vec2d position, double arg_radius) : Collider(position, arg_radius),
+Hive::Hive (const Vec2d& position, double arg_radius) : Collider(position, arg_radius),
     pollen(getAppConfig().hive_initial_nectar) {};      // constructor
 
 void Hive::delete_bees () {                             // delete all the Bees

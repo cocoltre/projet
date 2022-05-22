@@ -19,9 +19,9 @@ public :
      * \param arg_diam the Flower's diameter
      * \param arg_pollen the Flower's pollen's amount
      */
-    Flower (Vec2d position, double arg_diam, double arg_pollen); // constructor
+    Flower (const Vec2d& position, double arg_diam, double arg_pollen); // constructor
 
-    ~Flower () {} // destructor
+    virtual ~Flower () {} // destructor
 
 
     // RELATIVE TO POLLEN
@@ -52,5 +52,5 @@ public :
      * \brief get this Flower's pollen's amount
      * \return this Flower's pollen's amount
      */
-    double get_pollen ();
+    double get_pollen () const;
 };

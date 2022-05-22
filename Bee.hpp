@@ -37,7 +37,7 @@ public:
      */
     Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, double ScalSpeed, std::vector<state> const& possible_states);
 
-    ~Bee () {} // destructor
+    virtual ~Bee () {} // destructor
 
     /*!
      * \brief get the configuration specific to a Bee
@@ -71,7 +71,7 @@ public:
      * \brief check if the Bee is dead (when it has no energy)
      * \return true if the Bee is dead
      */
-    bool Isdead ();
+    bool Isdead () const;
 
     /*!
      * \brief draw the Bee
@@ -109,13 +109,13 @@ public:
      * \brief get the Bee's Hive's position
      * \return the Bee's Hive's position
      */
-    Vec2d home_position ();
+    Vec2d home_position () const ;
 
     /*!
      * \brief get the Bee's Hive's radius
      * \return the Bee's Hive's radius
      */
-    double home_radius();
+    double home_radius() const ;
 
 
     // RELATIVE TO ACTIONS IN STATES
@@ -197,6 +197,5 @@ public:
      * \param working a WorkerBee
      */
     virtual void interactWith(WorkerBee* working) = 0;
-
 
 };

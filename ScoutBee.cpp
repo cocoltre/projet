@@ -131,7 +131,7 @@ void ScoutBee::interactWith(WorkerBee* working) {           // do the actions ne
 
 
 // GETTERS
-Vec2d const* ScoutBee::getCollidingFlowerPosition(Collider const& body) {       // create a pointer on the position of the Colliding Flower
+Vec2d const* ScoutBee::getCollidingFlowerPosition(Collider const& body) const{       // create a pointer on the position of the Colliding Flower
     return new Vec2d(body.getPosition());
 }
 

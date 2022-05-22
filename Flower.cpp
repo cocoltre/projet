@@ -5,7 +5,7 @@
 #include <Random/Random.hpp>
 
 // CONSTRUCTOR AND DESTRUCTOR
-Flower::Flower (Vec2d position, double arg_diam, double arg_pollen) : Collider(position, arg_diam/2), pollen(arg_pollen),
+Flower::Flower (const Vec2d& position, double arg_diam, double arg_pollen) : Collider(position, arg_diam/2), pollen(arg_pollen),
     indice(uniform(0, int(getValueConfig()["simulation"]["flower"]["textures"].size() -1))) {}  // constructor
 
 
@@ -56,7 +56,7 @@ void Flower::update(sf::Time dt) {                                  // update th
 
 
 // GETTER
-double Flower::get_pollen() {                   // get this Flower's pollen's amount
+double Flower::get_pollen() const{                   // get this Flower's pollen's amount
     return pollen;
 }
 

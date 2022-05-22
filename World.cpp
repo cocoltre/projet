@@ -9,24 +9,34 @@
 #include <fstream>
 #include <string>
 
+// CONSTRUCTOR AND DESTRUCTOR
+World::World() {                                                    // contructor by default
+    loadFromFile();
+}
+
+
 // GETTERS
-float World::getSize() const {                              // get this World's collection of cells
+int World::get_full_size() const {
+    return nbcells_ * nbcells_ ;
+}
+
+float World::getSize() const {                                      // get this World's width's size
     return cell_size * nbcells_ ;
 }
 
-std::vector<double> World::get_humid_cells() {              // get this World's collection of humidity levels
+std::vector<double> World::get_humid_cells() const {                // get this World's collection of humidity levels
     return humid_cells;
 }
 
-int World::get_nbcells_() {                                 // get this World's number of cells
+int World::get_nbcells_() const {                                   // get this World's number of cells
     return nbcells_;
 }
 
-std::vector<Kind> World::get_cells_() {                     // get this World's collection of cells
+std::vector<Kind> World::get_cells_() const {                       // get this World's collection of cells
     return cells_;
 }
 
-float World::get_cell_size() {                              // get this World's cell size
+float World::get_cell_size() const {                                // get this World's cell size
     return cell_size;
 }
 
@@ -42,7 +52,7 @@ std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::
     if ((topLeft.x < bottomRight.x) and (topLeft.y < bottomRight.y)) {
         for (int i(topLeft.x); i <= bottomRight.x; ++i) {
             for (int j(topLeft.y); j <= bottomRight.y; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
     }
@@ -53,12 +63,12 @@ std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::
     else if ((topLeft.x > bottomRight.x) and (topLeft.y < bottomRight.y)) {
         for (int i(topLeft.x); i < nbcells_; ++i) {                             // right side
             for (int j(topLeft.y); j <= bottomRight.y; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
         for (int i(0); i <= bottomRight.x; ++i) {                               // left side
             for (int j(topLeft.y); j <= bottomRight.y; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
     }
@@ -69,22 +79,22 @@ std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::
     else if ((topLeft.x > bottomRight.x) and (topLeft.y > bottomRight.y)) {
         for (int i(0); i <= bottomRight.x; ++i) {                               // on the top corner left
             for (int j(0); j <= bottomRight.y; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
         for (int i(topLeft.x); i < nbcells_; ++i) {                             // on the top corner right
             for (int j(0); j <= bottomRight.y; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
         for (int i(0); i <= bottomRight.x; ++i) {                               // on the bottom corner left
             for (int j(topLeft.y); j < nbcells_; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
         for (int i(topLeft.x); i < nbcells_; ++i) {                             // on the bottom corner right
             for (int j(topLeft.y); j < nbcells_; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
     }
@@ -95,12 +105,12 @@ std::vector<std::size_t> World::indexesForRect(sf::Vector2i const& topLeft, sf::
     else if ((topLeft.x < bottomRight.x) and (topLeft.y > bottomRight.y)) {
         for (int i(topLeft.x); i <= bottomRight.x; ++i) {                       // top side
             for (int j(0); j <= bottomRight.y; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
         for (int i(topLeft.x); i <= bottomRight.x; ++i) {                       // bottom side
             for (int j(topLeft.y); j <= nbcells_; ++j) {
-                vec.push_back(i+j*nbcells_);
+                vec.push_back(index_cell(i,j));
             }
         }
     }
@@ -152,7 +162,7 @@ void World::drawOn (sf::RenderTarget& target) const {               // draw the 
     if (getAppConfig().showHumidity() == true) {                    // to show humidity levels
         target.draw(humidityVertexes_.data(), humidityVertexes_.size(), sf::Quads);
         if (isDebugOn() == true) {                                  // to show the values of the humidity levels
-            auto const text = buildText(to_nice_string(humid_cells[cursor_position.x() + cursor_position.y() * nbcells_]), text_position, getAppFont(), text_size, text_color);
+            auto const text = buildText(to_nice_string(humid_cells[index_cell(cursor_position.x(), cursor_position.y())]), text_position, getAppFont(), text_size, text_color);
             target.draw(text);
         }
     }
@@ -165,7 +175,7 @@ void World::drawOn (sf::RenderTarget& target) const {               // draw the 
 void World::reloadConfig () {                                       // gives values to attributes (except vertexes)
     nbcells_ = getAppConfig().world_cells;
     cell_size = getAppConfig().world_size / nbcells_;
-    std::vector<Kind> vec (nbcells_*nbcells_, Kind::Rock);
+    std::vector<Kind> vec (get_full_size(), Kind::Rock);
     cells_ = vec;
 
     const double eta (getAppConfig().world_humidity_init_level);    // declaration and initialization of constants
@@ -178,7 +188,7 @@ void World::reloadConfig () {                                       // gives val
     }
     humidityRange_ = hr;
 
-    std::vector<double> vec2 (nbcells_*nbcells_);
+    std::vector<double> vec2 (get_full_size());
     humid_cells = vec2;
 
     nb_waterSeeds = getAppConfig().world_nb_water_seeds;                    // count the number of water Seeds
@@ -188,10 +198,11 @@ void World::reloadConfig () {                                       // gives val
 }
 
 void World::reloadCacheStructure () {                                       // initializes the attributes (vertixes) related to the texture and humidity of the cells
-    grassVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
-    waterVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
-    rockVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
-    humidityVertexes_ = generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size);
+    std::vector<sf::Vertex> generate_vertexes (generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size));
+    grassVertexes_ = generate_vertexes;
+    waterVertexes_ = generate_vertexes;
+    rockVertexes_ = generate_vertexes;
+    humidityVertexes_ = generate_vertexes;
     renderingCache_.create(nbcells_ * cell_size, nbcells_ * cell_size);     // initialize the terrain texture
 }
 
@@ -212,7 +223,7 @@ void World::updateCache () {                                                // u
     double blue_level (0.00);
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
-            id = x + y*nbcells_;
+            id = index_cell(x,y);
             index = indexesForCellVertexes(x, y, nbcells_ );                // vector of the four indexes (N-S-E-O) of the vertex cells
 
             if (cells_[id] == Kind::Grass) {                                // makes grass cell green
@@ -265,14 +276,15 @@ void World::reset (bool regenerate) {                                           
     for (int w(0); w < nb_waterSeeds; ++w) {                            // initialize seeds by putting the desired number of water Seeds in random positions
         seeds_[w].position = sf::Vector2i (uniform(0, nbcells_-1), uniform(0, nbcells_-1));
         seeds_[w].seed = Kind::Water;
-        cells_[seeds_[w].position.x + seeds_[w].position.y * nbcells_] = Kind::Water;       // transmission of Seeds to cells
+        cells_[index_cell(seeds_[w].position.x, seeds_[w].position.y)] = Kind::Water;       // transmission of Seeds to cells
     }
 
     for (size_t g(nb_waterSeeds); g < seeds_.size(); ++g) {                                 // same for grass Seeds
         seeds_[g].position = sf::Vector2i (uniform(0, nbcells_-1), uniform(0, nbcells_-1));
         seeds_[g].seed = Kind::Grass;
-        if (cells_[seeds_[g].position.x + seeds_[g].position.y * nbcells_] != Kind::Water) {    // because water cells cannot be covered
-            cells_[seeds_[g].position.x + seeds_[g].position.y * nbcells_] = seeds_[g].seed;
+        int ind(index_cell(seeds_[g].position.x, seeds_[g].position.y));
+        if (cells_[ind] != Kind::Water) {    // because water cells cannot be covered
+            cells_[ind] = seeds_[g].seed;
             }
     }
 
@@ -307,8 +319,9 @@ void World::loadFromFile () {                                                   
         std::string phrase3;                                // reads the 3rd line: the texture of each cell
         getline(entree, phrase3);
         phrase3.erase(remove(phrase3.begin(),phrase3.end(),' '),phrase3.end());     // delete spaces
-        std::vector<Kind> vec (nbcells_*nbcells_);
-        for (int i(0); i< nbcells_*nbcells_; ++i) {
+        int full_size (get_full_size());
+        std::vector<Kind> vec (full_size);
+        for (int i(0); i< full_size; ++i) {
             vec[i] = static_cast<Kind>(std::stoi(std::string(1, phrase3[i]))) ;
         }
         cells_ = vec;
@@ -316,8 +329,8 @@ void World::loadFromFile () {                                                   
         std::string phrase4;
         std::string phrase_cut("");
         getline(entree, phrase4);                           // read the 4th line: the humidity level of each cell
-        std::vector<double> vec2 (nbcells_*nbcells_);
-        for (int i(0); i< nbcells_*nbcells_; ++i) {         // delete spaces
+        std::vector<double> vec2 (full_size);
+        for (int i(0); i< full_size; ++i) {         // delete spaces
             while (phrase4[0] != ' ') {
                 phrase_cut += phrase4[0];
                 phrase4.erase(0,1);
@@ -386,17 +399,19 @@ void World::step () {                               // randomly moves each Seed 
             else {                                                  // random movement throughout the terrain
                 int nx(0);
                 int ny(0);
+                int i(0);
 
                 do {
                 nx = uniform(0, nbcells_ - 1);
                 ny = uniform(0, nbcells_ - 1);
-                } while (seeds_[i].position.x == nx and seeds_[i].position.y == ny);    // to force the Seed to move
+                ++i;
+                } while (seeds_[i].position.x == nx and seeds_[i].position.y == ny and i < 100);    // to force the Seed to move until 100 unsuccessful tests
 
                 seeds_[i].position.x = nx;
                 seeds_[i].position.y = ny;
             }
         }
-        cells_[seeds_[i].position.x + seeds_[i].position.y * nbcells_] = seeds_[i].seed; // update cell texture
+        cells_[index_cell(seeds_[i].position.x, seeds_[i].position.y)] = seeds_[i].seed; // update cell texture
     }
 
     set_humidity();                                 // update cells' humidity
@@ -445,7 +460,7 @@ void World::smooth () {                     // smooth the different areas once
 
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
-            index = x + y * nbcells_;
+            index = index_cell(x,y);
             if ((copie_de_cells_[index] == Kind::Grass) or (copie_de_cells_[index] == Kind::Rock)) { // treatment if the cell is a grass or rock cell and is surrounded by water
                 if (y == 0) {                                                                        // if the cell is on the 1st line (top) of the World
                     t = 0.00;
@@ -515,7 +530,7 @@ void World::smooth () {                     // smooth the different areas once
 
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
-            index = x + y * nbcells_;
+            index = index_cell(x,y);
             if (copie_de_cells_[index] == Kind::Rock) {                                     // then, treatment if the cell is a rock cell and is surrounded by grass
                 if (y == 0) {                                                               // if the cell is on the 1st line (top) of the World
                     t = 0.00;
@@ -599,12 +614,12 @@ void World::smooths (int n, bool b) {           // smooth the different areas se
 
 
 // TESTS
-bool World::isGrowable(const Vec2d& p) {                                    // determine if a cell is grass
-    return (cells_[p.x() + p.y()*nbcells_] == Kind::Grass);
+bool World::isGrowable(const Vec2d& p) const {                                    // determine if a cell is grass
+    return (cells_[index_cell(p.x(),p.y())] == Kind::Grass);
 }
 
-bool World::IsFlyable(Vec2d const& p) {                                     // check if a position is not made of rock (meaning that bees can fly there)
-    return (cells_[coord(p).x() + coord(p).y()*nbcells_] != Kind::Rock);
+bool World::IsFlyable(Vec2d const& p) const {                                     // check if a position is not made of rock (meaning that bees can fly there)
+    return (cells_[index_cell(coord(p).x(),coord(p).y())] != Kind::Rock);
 }
 
 bool World::isHiveable(const Vec2d& position, double radius) {                                  // determine if a Hive can be added (if the position is grass)
@@ -645,6 +660,9 @@ Vec2d World::clamp (const Vec2d& vec) {                                     // r
     return {x,y};
 }
 
+int World::index_cell(int x, int y) const {
+    return x + y * nbcells_;
+}
 
 // RELATIVE TO HUMIDITY
 void World::set_humidity () {                                       // initialize the humidity rate of each cell in the field
@@ -655,11 +673,11 @@ void World::set_humidity () {                                       // initializ
     humid_cells.clear();                                            // reset the humidity level of each cell
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
-            if (cells_[x + y*nbcells_] == Kind::Water) {                                                // if the cell is a water cell,
+            if (cells_[index_cell(x,y)] == Kind::Water) {                                                // if the cell is a water cell,
                 for (int nx(x - humidityRange_); nx < x + humidityRange_ + 2; ++ nx) {                  // then for all cells in its neighborhood,
                     for (int ny(y - humidityRange_); ny < y + humidityRange_ + 2; ++ ny) {
                         dist = std::hypot(x-nx, y-ny);                                                  // we calculate the distance separating them,
-                        humid_cells[nx + ny*nbcells_] += eta*exp(-dist/lambda);                         // then the humidity level of the cell changes
+                        humid_cells[index_cell(nx,ny)] += eta*exp(-dist/lambda);                         // then the humidity level of the cell changes
                     }
                 }
             }

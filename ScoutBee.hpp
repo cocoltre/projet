@@ -21,7 +21,7 @@ public :
      */
     ScoutBee(Hive& Home, const Vec2d& position);
 
-    ~ScoutBee() {} // destructor
+    virtual ~ScoutBee() {} // destructor
 
     /*!
      * \brief get the configuration specific to a ScoutBee
@@ -79,7 +79,7 @@ public :
      * \param body the colliding flower
      * \return a pointer on the position of the Colliding Flower
      */
-    Vec2d const* getCollidingFlowerPosition(Collider const& body);
+    Vec2d const* getCollidingFlowerPosition(Collider const& body) const;
 
     /*!
      * \brief get the state IN_HIVE

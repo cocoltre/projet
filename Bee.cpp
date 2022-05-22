@@ -13,7 +13,7 @@ Bee::Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, doub
       energy(energy2),
       memory(0.00, 0.00),
       memory_value(false),
-      mode("au repos"),
+      mode("at rest"),
       target(position),
       avoidanceClock_(sf::Time::Zero)
 
@@ -42,7 +42,7 @@ void Bee::targetMove(sf::Time dt) {                 // move the Bee in a precise
     if (getAppEnv().IsFlyable(possible_position)) {     // if the next position is not rock
         Collider::move(speed * dt.asSeconds());
     }
-    else {          // if the next position is rock
+    else {                                              // if the next position is rock
         avoidanceClock_ = sf::seconds(getConfig()["moving behaviour"]["target"]["avoidance delay"].toInt());        // launching of the clock
         double beta (0.00);
         if (bernoulli(0.5) == true) {
@@ -82,11 +82,8 @@ void Bee::randomMove(sf:: Time dt) {                    // move the Bee in a ran
 
 
 // RELATIVE TO EVOLUTION
-bool Bee::Isdead () {       // check if the Bee is dead (when it has no energy)
-    if (energy == 0.00) {
-        return true;
-    }
-    else return false;
+bool Bee::Isdead () const {       // check if the Bee is dead (when it has no energy)
+    return (energy == 0.00);
 }
 
 void Bee::drawOn(sf::RenderTarget& target) const {              // draw a Bee
@@ -142,11 +139,11 @@ Vec2d Bee::get_memory() const {                         // get the Bee's memory
     return memory;
 }
 
-Vec2d Bee::home_position () {                           // get the Bee's Hive's position
+Vec2d Bee::home_position () const {                           // get the Bee's Hive's position
     return Home.getPosition();
 }
 
-double Bee::home_radius() {                             // get the Bee's Hive's radius
+double Bee::home_radius() const {                             // get the Bee's Hive's radius
     return Home.getRadius();
 }
 

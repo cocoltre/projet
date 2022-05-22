@@ -31,7 +31,7 @@ public :
      */
     Collider (Collider const& other); // copy's constructor
 
-    ~Collider () {} // destructor
+    virtual ~Collider () {} // destructor
 
 
     // MOVEMENT
