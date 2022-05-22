@@ -22,7 +22,7 @@ public :
      */
     Env ();     // constructor by default
 
-    ~Env () {   // destructor
+    virtual ~Env () {   // destructor
         delete_flowers();       // delete all the Flowers' collection
         delete_hives();         // delete all the Hives' collection
     }

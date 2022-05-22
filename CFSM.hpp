@@ -17,7 +17,7 @@ public :
      */
     CFSM (std::vector<state> const& possible_states);
 
-    ~CFSM () {}  // destructor
+    virtual ~CFSM () {}  // destructor
 
 
     // GETTER
