@@ -1,0 +1,19 @@
+#include <iostream>
+#include "Bee.hpp"
+
+#pragma once
+
+class WorkerBee : public Bee {
+private :
+    static state const IN_HIVE;
+
+public :
+    WorkerBee (Hive& Home, const Vec2d& position);
+    ~WorkerBee() {}
+    virtual j::Value getConfig() const&;
+    virtual void onState (state const& s, sf::Time dt);
+    virtual void onEnterState(state const& s)  ;
+    virtual void drawOn(sf::RenderTarget& target) const;
+
+
+};

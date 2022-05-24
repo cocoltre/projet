@@ -55,8 +55,13 @@ public :
 
     std::vector<double> get_humid_cells();
     int get_nbcells_();
+    std::vector<Kind> get_cells_();
+    float get_cell_size();
 
     bool isHiveable(const Vec2d& position, double radius);
+    Vec2d clamp (const Vec2d& vec);
     std::vector<std::size_t> indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const;
+
+    bool IsFlyable(Vec2d const& p);
 };
 
