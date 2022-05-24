@@ -8,11 +8,7 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
-
-// CONSTRUCTOR AND DESTRUCTOR
-World::World() {                                                    // contructor by default
-    loadFromFile();
-}
+#include <SFML/Graphics.hpp>
 
 
 // GETTERS
@@ -172,41 +168,42 @@ void World::drawOn (sf::RenderTarget& target) const {               // draw the 
     }
 }
 
-void World::reloadConfig () {                                       // gives values to attributes (except vertexes)
+void World::reloadConfig () {                                       // give values to attributes (except vertexes)
     nbcells_ = getAppConfig().world_cells;
     cell_size = getAppConfig().world_size / nbcells_;
-    std::vector<Kind> vec (get_full_size(), Kind::Rock);
-    cells_ = vec;
+    cells_ = std::vector<Kind> (get_full_size(), Kind::Rock);
 
     const double eta (getAppConfig().world_humidity_init_level);    // declaration and initialization of constants
     const double lambda (getAppConfig().world_humidity_decay_rate);
     const double seuil (getAppConfig().world_humidity_threshold);
 
-    int hr(0);                                                      // calculate humidity range
-    while (eta * exp(-hr/lambda) > seuil) {
-        ++ hr;
+    humidityRange_ = 0;
+    while (eta * exp(-humidityRange_/lambda) > seuil) {                         // calculate humidity range
+        ++ humidityRange_;
     }
-    humidityRange_ = hr;
 
-    std::vector<double> vec2 (get_full_size());
-    humid_cells = vec2;
+    humid_cells = std::vector<double> (get_full_size());
 
     nb_waterSeeds = getAppConfig().world_nb_water_seeds;                    // count the number of water Seeds
     nb_grassSeeds = getAppConfig().world_nb_grass_seeds;                    // count the number of grass Seeds
     seeds_ = std::vector<Seed> (nb_waterSeeds + nb_grassSeeds);             // give the correct size to the collection of Seeds
 
+
 }
 
-void World::reloadCacheStructure () {                                       // initializes the attributes (vertixes) related to the texture and humidity of the cells
+void World::reloadCacheStructure () {                                       // initialize the attributes (vertexes) related to the texture and humidity of the cells
     std::vector<sf::Vertex> generate_vertexes (generateVertexes(getValueConfig()["simulation"]["world"]["textures"], nbcells_, cell_size));
     grassVertexes_ = generate_vertexes;
     waterVertexes_ = generate_vertexes;
     rockVertexes_ = generate_vertexes;
     humidityVertexes_ = generate_vertexes;
     renderingCache_.create(nbcells_ * cell_size, nbcells_ * cell_size);     // initialize the terrain texture
+
 }
 
 void World::updateCache () {                                                // update renderingCache_ attribute (create texture)
+    renderingCache_.clear();
+
     double minHumidity (humid_cells[0]);                                    // calculate the minimum and maximum humidity of the ground
     double maxHumidity (humid_cells[0]);
     for (size_t i(1); i < humid_cells.size(); ++i) {
@@ -226,21 +223,21 @@ void World::updateCache () {                                                // u
             id = index_cell(x,y);
             index = indexesForCellVertexes(x, y, nbcells_ );                // vector of the four indexes (N-S-E-O) of the vertex cells
 
-            if (cells_[id] == Kind::Grass) {                                // makes grass cell green
+            if (cells_[id] == Kind::Grass) {                                // make grass cell green
                 for (int j(0); j < 4; ++j) {
                     grassVertexes_[index[j]].color.a = 255;
                     waterVertexes_[index[j]].color.a = 0;
                     rockVertexes_[index[j]].color.a = 0;
                 }
             }
-            if (cells_[id] == Kind::Water) {                                // makes water cell blue
+            if (cells_[id] == Kind::Water) {                                // make water cell blue
                 for (int j(0); j < 4; ++j) {
                     grassVertexes_[index[j]].color.a = 0;
                     waterVertexes_[index[j]].color.a = 255;
                     rockVertexes_[index[j]].color.a = 0;
                 }
             }
-            if (cells_[id] == Kind::Rock) {                                 // makes rock cell beige
+            if (cells_[id] == Kind::Rock) {                                 // make rock cell beige
                 for (int j(0); j < 4; ++j) {
                     grassVertexes_[index[j]].color.a = 0;
                     waterVertexes_[index[j]].color.a = 0;
@@ -267,30 +264,35 @@ void World::updateCache () {                                                // u
     renderingCache_.draw(grassVertexes_.data(), grassVertexes_.size(), sf::Quads, rs);
 
     renderingCache_.display();                                                              // implement the drawing of the texture
+
 }
 
 void World::reset (bool regenerate) {                                                       // initialize the set of world attributes
-    reloadConfig();                                                                         // initialize attributes (except vertixes)
+    reloadConfig();                                                                         // initialize attributes (except vertexes)
     reloadCacheStructure();                                                                 // initialize attributes (vertexes) related to texture and humidity
+
+    int ind(0);
 
     for (int w(0); w < nb_waterSeeds; ++w) {                            // initialize seeds by putting the desired number of water Seeds in random positions
         seeds_[w].position = sf::Vector2i (uniform(0, nbcells_-1), uniform(0, nbcells_-1));
         seeds_[w].seed = Kind::Water;
-        cells_[index_cell(seeds_[w].position.x, seeds_[w].position.y)] = Kind::Water;       // transmission of Seeds to cells
+        ind = index_cell(seeds_[w].position.x, seeds_[w].position.y);
+        cells_[ind] = Kind::Water;       // transmission of Seeds to cells
     }
 
     for (size_t g(nb_waterSeeds); g < seeds_.size(); ++g) {                                 // same for grass Seeds
         seeds_[g].position = sf::Vector2i (uniform(0, nbcells_-1), uniform(0, nbcells_-1));
         seeds_[g].seed = Kind::Grass;
-        int ind(index_cell(seeds_[g].position.x, seeds_[g].position.y));
+        ind = index_cell(seeds_[g].position.x, seeds_[g].position.y);
         if (cells_[ind] != Kind::Water) {    // because water cells cannot be covered
             cells_[ind] = seeds_[g].seed;
-            }
+        }
     }
 
     if (regenerate) {           // false boolean for tests
         steps(getAppConfig().world_generation_steps);
         smooths(getAppConfig().world_generation_smoothness_level);
+
     }
 
     set_humidity();             // updates cells' humidity
@@ -443,7 +445,7 @@ void World::seed_position (sf::Vector2i& a) {       // randomly modifies the pos
     }
 }
 
-void World::steps (int nb, bool b) {        // randomly moves each Seed multiple times
+void World::steps (int nb, bool b) {        // randomly move each Seed multiple times
     for (int i(0); i < nb; ++i) {
         step ();
     }
@@ -461,68 +463,17 @@ void World::smooth () {                     // smooth the different areas once
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
             index = index_cell(x,y);
-            if ((copie_de_cells_[index] == Kind::Grass) or (copie_de_cells_[index] == Kind::Rock)) { // treatment if the cell is a grass or rock cell and is surrounded by water
-                if (y == 0) {                                                                        // if the cell is on the 1st line (top) of the World
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Water) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Water;                                       // if the cell is surrounded by water, it becomes a water cell
+            if ((cells_[index] == Kind::Grass) or (cells_[index] == Kind::Rock)) { // treatment if the cell is a grass or rock cell, and is surrounded by water
+                t = 0.00;
+                for (int i(x-1); i <= x+1; ++i) {                                                    // form a square around the cell
+                    for (int j(y-1); j <= y+1; ++j) {
+                        if (not IsOut(i,j)) {                                                        // if the coordinates of the square's cells are in the World
+                            if (cells_[index_cell(i, j)] == Kind::Water) { ++t; }
+                        }
                     }
                 }
-
-                else if (y == nbcells_ - 1) {                                                       // if the cell is on the last line (bottom) of the World
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Water) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Water;
-                    }
-                }
-
-                if (x == 0) {                                                                       // if the cell is on the 1st column (on the left) of the World
-                    t = 0.00;
-                    if (copie_de_cells_[index + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Water) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Water;
-                    }
-                }
-
-                else if (x == nbcells_ - 1) {                                                       // if the cell is on the last column (on the right) of the World
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Water) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Water;
-                    }
-                }
-
-                else if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {           // inside the World
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Water) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Water) { ++t; }
-                    if (t/6 > getAppConfig().smoothness_water_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Water;
-                    }
+                if (t/5 > getAppConfig().smoothness_water_neighbor_ratio) {
+                    copie_de_cells_[index] = Kind::Water;                                       // if the cell is surrounded by water, it becomes a water cell
                 }
             }
         }
@@ -531,68 +482,17 @@ void World::smooth () {                     // smooth the different areas once
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
             index = index_cell(x,y);
-            if (copie_de_cells_[index] == Kind::Rock) {                                     // then, treatment if the cell is a rock cell and is surrounded by grass
-                if (y == 0) {                                                               // if the cell is on the 1st line (top) of the World
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Grass) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Grass;                               // if the rock cell is surrounded by grass, it becomes a grass cell
+            if (cells_[index] == Kind::Rock) {                                     // then, treatment if the cell is a rock cell and is surrounded by grass
+                t = 0.00;
+                for (int i(x-1); i <= x+1; ++i) {                                                    // form a square around the cell
+                    for (int j(y-1); j <= y+1; ++j) {
+                        if (not IsOut(i,j)) {                                                        // if the coordinates of the square's cells are in the World
+                            if (cells_[index_cell(i, j)] == Kind::Grass) { ++t; }
+                        }
                     }
                 }
-
-                else if (y == nbcells_ - 1) {                                               // if the cell is on the last line (bottom) of the field
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Grass) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Grass;
-                    }
-                }
-
-                if (x == 0) {                                                               // if the cell is on the 1st column (on the left) of the World
-                    t = 0.00;
-                    if (copie_de_cells_[index + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Grass) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Grass;
-                    }
-                }
-
-                else if (x == nbcells_ - 1) {                                               // if the cell is on the last column (on the right) of the field
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Grass) { ++t; }
-                    if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Grass;
-                    }
-                }
-
-                else if (x != 0 and x != nbcells_ - 1 and y != 0 and y != nbcells_ - 1) {   // inside the World
-                    t = 0.00;
-                    if (copie_de_cells_[index - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index - nbcells_ + 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ - 1] == Kind::Grass) { ++t; }
-                    if (copie_de_cells_[index + nbcells_ + 1] == Kind::Grass) { ++t; }
-                    if (t/8 > getAppConfig().smoothness_grass_neighbor_ratio) {
-                        copie_de_cells_[index] = Kind::Grass;
-                    }
+                if (t/5 > getAppConfig().smoothness_grass_neighbor_ratio) {
+                    copie_de_cells_[index] = Kind::Grass;                                       // if the cell is surrounded by grass, it becomes a grass cell
                 }
             }
         }
@@ -635,6 +535,13 @@ bool World::isHiveable(const Vec2d& position, double radius) {                  
     return true;
 }
 
+bool World::IsOut(int x, int y) {
+    if ((x < 0) or (x >= nbcells_) or (y < 0) or (y >= nbcells_)) {
+        return true;
+    }
+    else return false;
+}
+
 
 // RELATIVE TO COORDINATES
 Vec2d World::coord (const Vec2d& p) const {                                 // give the coordinates of the cell containing a specific position
@@ -660,7 +567,7 @@ Vec2d World::clamp (const Vec2d& vec) {                                     // r
     return {x,y};
 }
 
-int World::index_cell(int x, int y) const {
+int World::index_cell(double x, double y) const {
     return x + y * nbcells_;
 }
 
@@ -671,6 +578,7 @@ void World::set_humidity () {                                       // initializ
 
     double dist (0.00);
     humid_cells.clear();                                            // reset the humidity level of each cell
+
     for (int x(0); x < nbcells_; ++x) {
         for (int y(0); y < nbcells_; ++y) {
             if (cells_[index_cell(x,y)] == Kind::Water) {                                                // if the cell is a water cell,

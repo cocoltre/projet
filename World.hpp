@@ -32,11 +32,7 @@ private :
 
 public :
 
-    // CONSTRUCTOR AND DESTRUCTOR
-    /*!
-     * \brief construct a World object fully set up by default
-     */
-    World(); // constructor by default
+    // DESTRUCTOR
 
     ~World () {} // destructor
 
@@ -183,6 +179,14 @@ public :
      */
     bool isHiveable(const Vec2d& position, double radius) ;
 
+    /*!
+     * \brief check if a position is out the World
+     * \param x the x of the position
+     * \param y the y of the position
+     * \return true if the position is out the World
+     */
+    bool IsOut(int x, int y);
+
 
    // RELATIVE TO COORDINATES
     /*!
@@ -205,7 +209,7 @@ public :
      * \param y y coordinate of the vector
      * \return the index of the cell from a vector
      */
-    int index_cell (int x, int y) const;
+    int index_cell (double x, double y) const;
 
     // RELATIVE TO HUMIDITY
     /*!
