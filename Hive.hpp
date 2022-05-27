@@ -10,8 +10,22 @@ class Bee; // predeclaration
 
 class Hive : public Collider, public Drawable, public Updatable {
 private :
+
+    // ATTRIBUTES
+
     std::vector<Bee*> Bees; // this Hive's Bees' collection
     double pollen;          // the nectar's amount that contains this Hive
+
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
+    // PRIVATE METHOD
+
+    // CONSTRUCTORS AND DESTRUCTORS
+    /*!
+     * \brief delete all the Bees' collection
+     */
+    void delete_bees ();
+
 
 public :
 
@@ -40,24 +54,19 @@ public :
         delete_bees();      // destroy all the Bees the Hive contains
     }
 
-    /*!
-     * \brief delete all the Bees' collection
-     */
-    void delete_bees ();
-
 
     // RELATIVE TO EVOLUTION
     /*!
      * \brief update the Hive's evolution
      * \param dt the small amount of time between each evolution
      */
-    void update(sf::Time dt);
+    void update(sf::Time dt) override ;
 
     /*!
      * \brief draw the Hive
      * \param targetWindow the environment where to draw
      */
-    void drawOn(sf::RenderTarget& targetWindow) const;
+    void drawOn(sf::RenderTarget& targetWindow) const override ;
 
 
     // RELATIVE TO POLLEN/NECTAR
@@ -73,6 +82,7 @@ public :
      * \return the amount of nectar that could have been taken
      */
     double takeNectar(double qte);
+
 
 protected :
 

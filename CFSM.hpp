@@ -5,8 +5,26 @@ typedef Uid state;
 
 class CFSM {
 private :
+
+    // ATTRIBUTES
     std::vector<state> States; // the collection of states
     int index;  // index of the current state
+
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
+    // PRIVATE METHOD
+
+    // RELATIVE TO ACTIONS IN STATES
+    /*!
+     * \brief do the actions necessary when entering in a new state
+     */
+    virtual void onEnterState(state const&) = 0;
+
+    /*!
+     * \brief do the actions necessary in a specific state
+     */
+    virtual void onState (state const&, sf::Time) = 0;
+
 
 public :
 
@@ -28,21 +46,14 @@ public :
     state getState() const;
 
 
+protected :
+
     // RELATIVE TO ACTIONS IN STATES
     /*!
      * \brief change to the next state
      */
     void nextState();
 
-    /*!
-     * \brief do the actions necessary when entering in a new state
-     */
-    virtual void onEnterState(state const&) = 0;
-
-    /*!
-     * \brief do the actions necessary in a specific state
-     */
-    virtual void onState (state const&, sf::Time) = 0;
 
     /*!
      * \brief do all the actions necessary in the current state

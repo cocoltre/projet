@@ -10,6 +10,9 @@ enum class Kind : short { Grass, Water, Rock }; // 3 possible texture
 
 class World {
 private :
+
+    // ATTRIBUTES
+
     int nbcells_;                               // this World's number of cells
     float cell_size;                            // the size of each cell
     std::vector<Kind> cells_;                   // this World's collection of cells
@@ -29,6 +32,76 @@ private :
 
     std::vector<double> humid_cells ;           // the collection of humidity levels
     int humidityRange_;                         // the humidity range
+
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
+    // PRIVATE METHODS
+
+    // GETTER
+    /*!
+     * \brief create a collection of all the indexes inside a specific rectangle
+     * \param topLeft the top left corner of the rectangle
+     * \param bottomRight the bottom right corner of the rectangle
+     * \return a collection of all the indexes inside a specific rectangle
+     */
+    std::vector<std::size_t> indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const;
+
+
+    // RELATIVE TO EVOLUTION
+    /*!
+     * \brief reload the World's configuration, give values to the attributes (except vertexes)
+     */
+    void reloadConfig();
+
+    /*!
+     * \brief reload the World's Cache Structure, initialize the attributes (vertextes) related to the structure
+     */
+    void reloadCacheStructure();
+
+
+    // RELATIVE TO MOVEMENT
+    /*!
+     * \brief randomly moves each Seed once
+     */
+    void step ();
+
+    /*!
+     * \brief randomly modifies the position of a Seed according to close moves
+     * \param a the initial position of the Seed
+     */
+    void seed_position (sf::Vector2i& a);
+
+    /*!
+     * \brief smooth the different areas once
+     */
+    void smooth ();
+
+
+    // TEST
+    /*!
+     * \brief check if a position is out the World
+     * \param x the x of the position
+     * \param y the y of the position
+     * \return true if the position is out the World
+     */
+    bool IsOut(int x, int y);
+
+
+    // RELATIVE TO COORDINATES
+    /*!
+     * \brief readjust the coordinates of a vector in the toric world
+     * \param vec the vector
+     * \return the coordinates of the vector in the toric world
+     */
+    Vec2d clamp (const Vec2d& vec);
+
+
+    // RELATIVE TO HUMIDITY
+    /*!
+     * \brief initialize humidity levels
+     */
+    void set_humidity () ;
+
 
 public :
 
@@ -74,13 +147,6 @@ public :
      */
     float get_cell_size() const ;
 
-    /*!
-     * \brief create a collection of all the indexes inside a specific rectangle
-     * \param topLeft the top left corner of the rectangle
-     * \param bottomRight the bottom right corner of the rectangle
-     * \return a collection of all the indexes inside a specific rectangle
-     */
-    std::vector<std::size_t> indexesForRect(sf::Vector2i const& topLeft, sf::Vector2i const& bottomRight) const;
 
 
     // RELATIVE TO EVOLUTION
@@ -89,16 +155,6 @@ public :
      * \param target the environment where to draw
      */
     void drawOn (sf::RenderTarget& target) const ;
-
-    /*!
-     * \brief reload all the configuration
-     */
-    void reloadConfig ();
-
-    /*!
-     * \brief reload the cache structure
-     */
-    void reloadCacheStructure ();
 
     /*!
      * \brief update the cache
@@ -126,27 +182,11 @@ public :
 
     // RELATIVE TO MOVEMENT
     /*!
-     * \brief randomly moves each Seed once
-     */
-    void step ();
-
-    /*!
-     * \brief randomly modifies the position of a Seed according to close moves
-     * \param a the initial position of the Seed
-     */
-    void seed_position (sf::Vector2i& a);
-
-    /*!
      * \brief randomly moves each Seed multiple times
      * \param nb the number of times
      * \param b true for updating the cache
      */
     void steps (int nb, bool b = false);
-
-    /*!
-     * \brief smooth the different areas once
-     */
-    void smooth ();
 
     /*!
      * \brief smooth the different areas several times
@@ -179,14 +219,6 @@ public :
      */
     bool isHiveable(const Vec2d& position, double radius) ;
 
-    /*!
-     * \brief check if a position is out the World
-     * \param x the x of the position
-     * \param y the y of the position
-     * \return true if the position is out the World
-     */
-    bool IsOut(int x, int y);
-
 
    // RELATIVE TO COORDINATES
     /*!
@@ -197,13 +229,6 @@ public :
     Vec2d coord (const Vec2d& p) const;
 
     /*!
-     * \brief readjust the coordinates of a vector in the toric world
-     * \param vec the vector
-     * \return the coordinates of the vector in the toric world
-     */
-    Vec2d clamp (const Vec2d& vec);
-
-    /*!
      * \brief get the index of the cell from a vector
      * \param x x coordinate of the vector
      * \param y y coordinate of the vector
@@ -211,11 +236,6 @@ public :
      */
     int index_cell (double x, double y) const;
 
-    // RELATIVE TO HUMIDITY
-    /*!
-     * \brief initialise humidity levels
-     */
-    void set_humidity () ;
 
 };
 

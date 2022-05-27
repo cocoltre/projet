@@ -5,14 +5,35 @@
 #include "Interface/Updatable.hpp"
 #include "FlowerGenerator.hpp"
 #include "Hive.hpp"
+#include <unordered_map>
 #pragma once
 
 class Env : public Drawable, public Updatable {
 private :
-    World world;    // the Env's World
-    std::vector <Flower*> Flowers;  // the Env's Flowers' collection
+
+    // ATTRIBUTES
+    World world;                        // the Env's World
+    std::vector <Flower*> Flowers;      // the Env's Flowers' collection
     FlowerGenerator flowergenerator;    // the Env's FlowerGenerator
-    std::vector <Hive*> Hives;      // the Env's Hives' collection
+    std::vector <Hive*> Hives;          // the Env's Hives' collection
+    unsigned int nb_scout;              // the number of ScoutBees
+    unsigned int nb_worker;             // the number of WorkerBees
+
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
+    // PRIVATE METHODS
+
+    // CONSTRUCTOR AND DESTRUCTORS
+    /*!
+     * \brief delete all the flowers' collection
+     */
+    void delete_flowers ();
+
+    /*!
+     * \brief delete all the Hives' collection
+     */
+    void delete_hives ();
+
 
 public :
 
@@ -25,17 +46,9 @@ public :
     virtual ~Env () {   // destructor
         delete_flowers();       // delete all the Flowers' collection
         delete_hives();         // delete all the Hives' collection
+        nb_scout = 0;           // reset the counter of ScoutBees and WorkerBees
+        nb_worker = 0;
     }
-
-    /*!
-     * \brief delete all the flowers' collection
-     */
-    void delete_flowers ();
-
-    /*!
-     * \brief delete all the Hives' collection
-     */
-    void delete_hives ();
 
 
     // RELATIVE TO EVOLUTION
@@ -43,13 +56,13 @@ public :
      * \brief update the Env's evolution
      * \param dt the small amount of time between each evolution
      */
-    void update(sf::Time dt);
+    void update(sf::Time dt) override ;
 
     /*!
      * \brief draw the Env
      * \param target the environment where to draw
      */
-    void drawOn(sf::RenderTarget& target) const ;
+    void drawOn(sf::RenderTarget& target) const override ;
 
     /*!
      * \brief draw a zone around a specific position, whose color determines whether the position can host a new Flower or not
@@ -147,4 +160,24 @@ public :
      */
     bool addHiveAt(const Vec2d& position);
 
+
+    // STATS
+    /*!
+     * \brief create a collection of all the latest dats for all the label's series
+     * \param label the specific label
+     * \return the collection of all the latest dats for all the label's series
+     */
+    std::unordered_map<std::string, double> fetchData(std::string label);
+
+    /*!
+     * \brief change the number of ScoutBees
+     * \param a the adding number
+     */
+    void change_nb_scout(int a);
+
+    /*!
+     * \brief change the number of WorkerBees
+     * \param b the adding number
+     */
+    void change_nb_worker(int b);
 };

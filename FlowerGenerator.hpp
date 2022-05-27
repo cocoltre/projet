@@ -4,9 +4,10 @@
 
 #pragma once
 
-class FlowerGenerator {
+class FlowerGenerator : public Updatable {
 private :
     sf::Time counter; // the counter
+
 
 public :
 
@@ -24,7 +25,7 @@ public :
      * \brief update the counter and the generator of Flowers
      * \param dt the small amount of time between each evolution
      */
-    void update(sf::Time dt);
+    void update(sf::Time dt) override ;
 
     /*!
      * \brief reset the counter

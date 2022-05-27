@@ -297,3 +297,28 @@ bool Env::addHiveAt(const Vec2d& position) {            // add a Hive at a speci
         return true;
     }
 }
+
+
+// STATS
+std::unordered_map<std::string, double> Env::fetchData(std::string label) {         // create a collection of all the latest dats for all the label's series
+    std::unordered_map<std::string, double> new_data ;
+    unsigned int nb_flowers (Flowers.size());
+    unsigned int nb_hives (Hives.size());
+
+    if (label == s::GENERAL) {
+        new_data[s::FLOWERS] = nb_flowers;
+        new_data[s::HIVES] = nb_hives;
+        new_data[s::SCOUTS] = nb_scout;
+        new_data[s::WORKERS] = nb_worker;
+    }
+
+    return new_data;
+}
+
+void Env::change_nb_scout(int a) {          // change the number of ScoutBees
+    nb_scout += a;
+}
+
+void Env::change_nb_worker(int b) {         // change the number of WorkerBees
+    nb_worker += b;
+}

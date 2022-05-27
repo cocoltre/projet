@@ -94,10 +94,11 @@ Bee* Hive::addBee(double scoutProb) {                               // add a Bee
     Vec2d newposition (getPosition() + Vec2d::fromRandomAngle()*uniform(0.00, getRadius()));
     if (bernoulli(scoutProb) == true) {
         Bees.push_back(new ScoutBee(*this, newposition));
+        getAppEnv().change_nb_scout(+1);
     }
     else {
         Bees.push_back(new WorkerBee(*this, newposition));
+        getAppEnv().change_nb_worker(+1);
     }
     return Bees.back();
-
 }

@@ -10,6 +10,7 @@ private :
     double pollen; // pollen's amount of this Flower
     int const indice; // indice of this Flower's texture
 
+
 public :
 
     // CONSTRUCTOR AND DESTRUCTOR
@@ -38,13 +39,13 @@ public :
      * \brief draw this Flower
      * \param target the environment where to draw
      */
-    void drawOn(sf::RenderTarget& target) const;
+    void drawOn(sf::RenderTarget& target) const override ;
 
     /*!
      * \brief update the Flower's evolution
      * \param dt the small amount of time between each evolution
      */
-    void update(sf::Time dt);
+    void update(sf::Time dt) override ;
 
 
     // GETTER

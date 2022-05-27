@@ -7,11 +7,26 @@
 #include <ostream>
 #pragma once
 
-class Collider
-{
+class Collider {
 private :
+
+    // ATTRIBUTES
+
     Vec2d center; // center of the Collider
     double radius; // radius of the Collider
+
+    // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
+    // PRIVATE METHOD
+
+    // MOVEMENT
+    /*!
+     * \brief clamp a position in the toric world
+     * \param vec the initial position
+     * \return the new position adapted to the toric world
+     */
+    Vec2d clamp (const Vec2d& vec);
+
 
 public :
 
@@ -35,13 +50,6 @@ public :
 
 
     // MOVEMENT
-    /*!
-     * \brief clamp a position in the toric world
-     * \param vec the initial position
-     * \return the new position adapted to the toric world
-     */
-    Vec2d clamp (const Vec2d& vec);
-
     /*!
      * \brief find the shortest way in the toric world to go to a specific place
      * \param to the specific place
@@ -139,6 +147,7 @@ public :
      * \return this Collider's radius
      */
     double getRadius () const;
+
 };
 
 std::ostream& operator<< (std::ostream& sortie, Collider const& body); // extern operator that shows a Collider's information

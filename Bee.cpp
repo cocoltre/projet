@@ -175,6 +175,16 @@ void Bee::learnFlowerLocation(const Vec2d& flowerPosition) {        // learn a n
 }
 
 
+// FOR STATS
+void Bee::change_nb_scout(int a) {                      // change the number of ScoutBees
+    getAppEnv().change_nb_scout(a);
+}
+
+void Bee::change_nb_worker(int b) {                     // change the number of WorkerBees
+    getAppEnv().change_nb_worker(b);
+}
+
+
 // RELATIVE TO POLLEN
 void Bee::dropPollen(double qte) {                      // drop a certain amount of pollen in the Bee's Hive
     Home.dropPollen(qte);
