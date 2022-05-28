@@ -88,12 +88,12 @@ bool Bee::Isdead () const {       // check if the Bee is dead (when it has no en
 
 void Bee::drawOn(sf::RenderTarget& target) const {              // draw a Bee
     auto BeeSprite = buildSprite(getPosition(), getRadius(), getAppTexture(getConfig()["texture"].toString()));
-    double α (speed.angle());
+    double alpha (speed.angle());
 
-    if ((α >= PI / 2) or (α <= -PI/2)) {
+    if ((alpha >= PI / 2) or (alpha <= -PI/2)) {
         BeeSprite.scale(1, -1);
     }
-    BeeSprite.rotate(α /DEG_TO_RAD);
+    BeeSprite.rotate(alpha /DEG_TO_RAD);
     target.draw(BeeSprite);
 
     if (isDebugOn() == true) {                                  // debugging option

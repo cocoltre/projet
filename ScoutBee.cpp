@@ -48,8 +48,9 @@ void ScoutBee::onState (state const& s, sf::Time dt) {      // do the actions ne
         change_value_memory(false);
         if (get_energy() >= getAppConfig().scout_energy_seek_flowers) {     // when the Bee has enough energy
             std::vector<Flower*> vec;                                       // vector of all Flowers in the Bee's visibility range
+            Collider c_ = Collider(getPosition(), getRadius() + getConfig()["visibility range"].toDouble());
             for (size_t i(0); i < getAppEnv().get_flowers().size(); ++i) {
-                if (*(getAppEnv().get_flowers()[i]) | Collider(getPosition(), getRadius() + getConfig()["visibility range"].toDouble())) {
+                if (*(getAppEnv().get_flowers()[i]) | c_) {
                     vec.push_back(getAppEnv().get_flowers()[i]);
                 }
             }
