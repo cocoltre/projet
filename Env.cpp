@@ -300,7 +300,7 @@ bool Env::addHiveAt(const Vec2d& position) {            // add a Hive at a speci
 
 
 // STATS
-std::unordered_map<std::string, double> Env::fetchData(std::string label) {         // create a collection of all the latest dats for all the label's series
+std::unordered_map<std::string, double> Env::fetchData(std::string label) {         // create a collection of all the latest data for all the label's series
     std::unordered_map<std::string, double> new_data ;
     unsigned int nb_flowers (Flowers.size());
     unsigned int nb_hives (Hives.size());
@@ -309,6 +309,20 @@ std::unordered_map<std::string, double> Env::fetchData(std::string label) {     
         new_data[s::FLOWERS] = nb_flowers;
         new_data[s::HIVES] = nb_hives;
         new_data[s::SCOUTS] = nb_scout;
+        new_data[s::WORKERS] = nb_worker;
+    }
+    else if (label == s::FLOWERS) {
+        new_data[s::FLOWERS] = nb_flowers;
+    }
+    else if (label == s::HIVES) {
+        for (size_t i(0); i < Hives.size(); ++i) {
+            new_data[getHivesIds()[i]] = Hives[i]->get_pollen();
+        }
+    }
+    else if (label == s::SCOUTS) {
+        new_data[s::SCOUTS] = nb_scout;
+    }
+    else if (label == s::WORKERS) {
         new_data[s::WORKERS] = nb_worker;
     }
 
@@ -321,4 +335,12 @@ void Env::change_nb_scout(int a) {          // change the number of ScoutBees
 
 void Env::change_nb_worker(int b) {         // change the number of WorkerBees
     nb_worker += b;
+}
+
+std::vector<std::string> Env::getHivesIds() const {         // get the Hives' Identifiers
+    std::vector<std::string> vec;
+    for (size_t i(0); i < Hives.size(); ++i) {
+        vec.push_back("hive #" + to_nice_string(i));
+    }
+    return vec;
 }

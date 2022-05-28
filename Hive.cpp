@@ -60,7 +60,7 @@ void Hive::drawOn(sf::RenderTarget& targetWindow) const {           // draw the 
        Bees[i]->drawOn(targetWindow);
     }
 
-    int text_size (30);                                             // indicate the nectar's amount
+    int text_size (30);                                             // indicate the pollen's amount
     sf::Color text_color(sf::Color::Red);
     Vec2d text_position (getPosition().x(), getPosition().y());
 
@@ -72,11 +72,11 @@ void Hive::drawOn(sf::RenderTarget& targetWindow) const {           // draw the 
 
 
 // RELATIVE TO POLLEN/NECTAR
-void Hive::dropPollen(double qte) {                                 // drop a certain amount of nectar in the Hive
+void Hive::dropPollen(double qte) {                                 // drop a certain amount of pollen in the Hive
     pollen += qte;
 }
 
-double Hive::takeNectar(double qte) {                               // take a certain amount of nectar of the Hive
+double Hive::takeNectar(double qte) {                               // take a certain amount of pollen of the Hive
     if (qte < pollen) {
         pollen -= qte;
         return qte;
@@ -86,6 +86,12 @@ double Hive::takeNectar(double qte) {                               // take a ce
         pollen = 0.00;
         return pollen_init;
     }
+}
+
+
+// GETTER
+double Hive::get_pollen() const {                                         // get this Hive's amount of pollen
+    return pollen;
 }
 
 

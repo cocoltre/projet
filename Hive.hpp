@@ -14,7 +14,7 @@ private :
     // ATTRIBUTES
 
     std::vector<Bee*> Bees; // this Hive's Bees' collection
-    double pollen;          // the nectar's amount that contains this Hive
+    double pollen;          // the pollen's amount that contains this Hive
 
     // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
@@ -83,6 +83,13 @@ public :
      */
     double takeNectar(double qte);
 
+
+    // GETTER
+    /*!
+     * \brief get this Hive's amount of pollen
+     * \return this Hive's amount of pollen
+     */
+    double get_pollen() const;
 
 protected :
 

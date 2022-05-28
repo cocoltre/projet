@@ -17,6 +17,7 @@ void Stats::update(sf::Time dt) {                           // update the Stats'
         }
         counter = sf::Time::Zero;
     }
+
 }
 
 void Stats::reset() {                                       // reset the Stats

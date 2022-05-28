@@ -180,4 +180,10 @@ public :
      * \param b the adding number
      */
     void change_nb_worker(int b);
+
+    /*!
+     * \brief get the Hives Identifiers
+     * \return the Hives Identifiers
+     */
+    std::vector<std::string> getHivesIds() const;
 };
