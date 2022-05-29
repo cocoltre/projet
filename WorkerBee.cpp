@@ -159,6 +159,6 @@ void WorkerBee::takePollen(double qte, int i) {         // take a certain amount
 
 
 // GETTER
-state WorkerBee::get_in_hive() {                        // get the state IN_HIVE
+state WorkerBee::get_in_hive() const {                                  // get the state IN_HIVE
     return IN_HIVE;
 }

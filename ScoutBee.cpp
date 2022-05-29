@@ -26,6 +26,7 @@ void ScoutBee::onEnterState(state const& s)  {              // do the actions ne
         change_mode("at rest");
     }
     else if (s == FLOWERS_SEARCH) {
+        change_value_memory(false);
         change_mode("randomly");
     }
     else if (s == BACK_TO_HIVE) {
@@ -45,7 +46,6 @@ void ScoutBee::onState (state const& s, sf::Time dt) {      // do the actions ne
         }
     }
     else if (s == FLOWERS_SEARCH) {
-        change_value_memory(false);
         if (get_energy() >= getAppConfig().scout_energy_seek_flowers) {     // when the Bee has enough energy
             std::vector<Flower*> vec;                                       // vector of all Flowers in the Bee's visibility range
             Collider c_ = Collider(getPosition(), getRadius() + getConfig()["visibility range"].toDouble());
@@ -132,11 +132,11 @@ void ScoutBee::interactWith(WorkerBee* working) {           // do the actions ne
 
 
 // GETTERS
-Vec2d const* ScoutBee::getCollidingFlowerPosition(Collider const& body) const{       // create a pointer on the position of the Colliding Flower
+Vec2d const* ScoutBee::getCollidingFlowerPosition(Collider const& body) const {     // create a pointer on the position of the Colliding Flower
     return new Vec2d(body.getPosition());
 }
 
-state ScoutBee::get_in_hive()  {                            // get the state IN_HIVE
+state ScoutBee::get_in_hive() const {                                               // get the state IN_HIVE
     return IN_HIVE;
 }
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Application.hpp"
 #include "Bee.hpp"
 
 #pragma once
@@ -79,6 +80,14 @@ private :
     void takePollen(double qte, int i) ;
 
 
+    // GETTER
+    /*!
+     * \brief get the state IN_HIVE
+     * \return the state IN_HIVE
+     */
+    virtual state get_in_hive() const override;
+
+
 public :
 
     // CONSTRUCTOR, DESTRUCTOR AND CONFIGURATION
@@ -89,15 +98,8 @@ public :
      */
     WorkerBee (Hive& Home, const Vec2d& position);
 
-    virtual ~WorkerBee() {      // destructor
-        change_nb_worker(-1);   // change the total number of ScoutBees in the environment
+    virtual ~WorkerBee() {                  // destructor
+        getAppEnv().change_nb_worker(-1);   // change the total number of ScoutBees in the environment
     }
 
-
-    // GETTER
-    /*!
-     * \brief get the state IN_HIVE
-     * \return the state IN_HIVE
-     */
-    static state get_in_hive();
 };

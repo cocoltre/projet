@@ -126,6 +126,12 @@ public:
      */
     double home_radius() const ;
 
+    /*!
+     * \brief get the state IN_HIVE
+     * \return the state IN_HIVE
+     */
+    virtual state get_in_hive() const = 0;
+
 
     // CHANGERS
     /*!
@@ -185,20 +191,6 @@ public:
     virtual void interactWith(WorkerBee* working) = 0;
 
 
-    // FOR STATS
-    /*!
-     * \brief change the number of ScoutBees
-     * \param a the adding number
-     */
-    void change_nb_scout(int a) ;
-
-    /*!
-     * \brief change the number of WorkerBees
-     * \param a the adding number
-     */
-    void change_nb_worker(int a) ;
-
-
 protected :
 
     // RELATIVE TO POLLEN
@@ -207,7 +199,5 @@ protected :
      * \param qte the certain amount of pollen
      */
     void dropPollen(double qte) ;
-
-
 
 };

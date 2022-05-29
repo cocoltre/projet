@@ -15,9 +15,9 @@ public :
     /*!
      * \brief construct a FlowerGenerator object by default
      */
-    FlowerGenerator () {counter = sf::Time::Zero;}; // constructor by default
+    FlowerGenerator () {counter = sf::Time::Zero;} // constructor by default
 
-    ~FlowerGenerator () {} // destructeur
+    ~FlowerGenerator () {} // destructor
 
 
     // RELATIVE TO EVOLUTION

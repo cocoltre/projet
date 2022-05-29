@@ -33,7 +33,7 @@ void Hive::update(sf::Time dt) {                        // update the Hive's evo
             delete Bees[i];
             Bees[i] = nullptr;
         }
-        else if (Bees[i]->getState() == WorkerBee::get_in_hive() or Bees[i]->getState() == ScoutBee::get_in_hive()) {
+        else if (Bees[i]->getState() == Bees[i]->get_in_hive()) {
             vec.push_back(Bees[i]);
         }
     }

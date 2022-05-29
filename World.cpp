@@ -535,7 +535,7 @@ bool World::isHiveable(const Vec2d& position, double radius) {                  
     return true;
 }
 
-bool World::IsOut(int x, int y) {
+bool World::IsOut(int x, int y) const {                                                               // check if a position is out of the World
     if ((x < 0) or (x >= nbcells_) or (y < 0) or (y >= nbcells_)) {
         return true;
     }

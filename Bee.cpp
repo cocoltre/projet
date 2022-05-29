@@ -119,7 +119,7 @@ void Bee::update(sf::Time dt) {                                 // update the Be
         rate = getConfig()["energy"]["consumption rates"]["moving"].toDouble();
     }
 
-    if (energy - rate * dt.asSeconds() >= 0.00) {   // update the Bee's energy
+    if (energy - rate * dt.asSeconds() >= 0.00) {       // update the Bee's energy
         energy -= rate * dt.asSeconds();
     }
     else { energy = 0.00; }
@@ -172,16 +172,6 @@ void Bee::gain_energy(double qte) {                     // convert a certain amo
 void Bee::learnFlowerLocation(const Vec2d& flowerPosition) {        // learn a new Flower's Position
     memory = flowerPosition;
     memory_value = true;
-}
-
-
-// FOR STATS
-void Bee::change_nb_scout(int a) {                      // change the number of ScoutBees
-    getAppEnv().change_nb_scout(a);
-}
-
-void Bee::change_nb_worker(int b) {                     // change the number of WorkerBees
-    getAppEnv().change_nb_worker(b);
 }
 
 

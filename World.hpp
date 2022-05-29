@@ -8,7 +8,7 @@
 enum class Kind : short { Grass, Water, Rock }; // 3 possible texture
 
 
-class World {
+class World : public Drawable {
 private :
 
     // ATTRIBUTES
@@ -79,12 +79,12 @@ private :
 
     // TEST
     /*!
-     * \brief check if a position is out the World
+     * \brief check if a position is out of the World
      * \param x the x of the position
      * \param y the y of the position
-     * \return true if the position is out the World
+     * \return true if the position is out of the World
      */
-    bool IsOut(int x, int y);
+    bool IsOut(int x, int y) const;
 
 
     // RELATIVE TO COORDINATES
@@ -154,7 +154,7 @@ public :
      * \brief draw the World
      * \param target the environment where to draw
      */
-    void drawOn (sf::RenderTarget& target) const ;
+    void drawOn (sf::RenderTarget& target) const override;
 
     /*!
      * \brief update the cache

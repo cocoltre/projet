@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Application.hpp"
 #include "Bee.hpp"
 
 #pragma once
@@ -77,6 +78,12 @@ private :
      */
     Vec2d const* getCollidingFlowerPosition(Collider const& body) const;
 
+    /*!
+     * \brief get the state IN_HIVE
+     * \return the state IN_HIVE
+     */
+    virtual state get_in_hive() const override ;
+
 
 public :
 
@@ -88,15 +95,10 @@ public :
      */
     ScoutBee(Hive& Home, const Vec2d& position);
 
-    virtual ~ScoutBee() {   // destructor
-        change_nb_scout(-1);    // change the total number of ScoutBees in the environment
+    virtual ~ScoutBee() {                   // destructor
+        getAppEnv().change_nb_scout(-1) ;   // change the total number of ScoutBees in the environment
     }
 
 
-    // GETTER
-    /*!
-     * \brief get the state IN_HIVE
-     * \return the state IN_HIVE
-     */
-    static state get_in_hive() ;
+
 };
