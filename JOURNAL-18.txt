@@ -1,0 +1,33 @@
+Journal 3:
+Durant la séance de TP 23 nous nous sommes attaqué à la classe Hive. La méthode
+bonus isHiveable nous a posé quelques soucis d'abord de comprehension et ensuite
+d'implementation, mais au final nous avons bien reussi à afficher le bon carré 
+et les bonnes couleurs. Pour les méthode drawOn,addHiveAt nous nous sommes inspiré des
+méthodes équivalqntes pour les fleures. Les autres méthodes de 4.1 on été relativement bien comprises et
+fonctionnent bien. Nous avons aussi commencer à nous familiariser à 4.2.
+
+En dehors des TPs nous avons commencer à coder la classe Bee. 
+
+Pendant la séance de TP 24 Nous avans eu Quelques soucis pour le dessin d'une 
+abeille notament l'orientation du sprite en fonction de la direction de la Bee.
+L'évolution d'une abeille et le déplacement se sont mieux passé.
+Test 17 passé avec succes.
+
+Pendant la séance de TP 25 nous avons definit les classes WorkerBee et 
+ScoutBee et CFSM. La modification de addBee et du niveau d'energie et 
+au dessin c'est bien passée et était plutôt amusante. Par contre nous 
+avons des soucis de comprehension et d'implementation pour la méthode 
+targetMove (nous y retravaillons pendat TP 26). Au final Test 18 c'est bien passé.
+
+Pendant cette séance de TP 26 nous continuant part 5.2 et revenons un peu sur 5.1.
+Après la séance de TP nous avons poursuivot la section 5.3. Elle c'est plutôt bien déroullée une fois
+que tout les états possible étaient bien compris et que les retouches à FlowerGenerator ont été faites.
+Test 21 passé avec succès. Puis nous avons codé les interactions entre abeilles qui permettent aux eclaireuses de communiquer
+la localisation de fleures aux butineuses. La collaboration dans le test 22 c'est bien passée.
+
+Après le midterm nous nous sommes penchés sur l'étape 6 suggérée du projet. Nous avons trouvée interessant de représenter 
+par des statistiques le monde que l'on fait évoluer depuis le debut du projet. Cela permet une meilleure
+compréhension de ce qui se passe.
+
+  
+
