@@ -21,41 +21,40 @@ Bee::Bee(Hive& Home, const Vec2d& position, double arg_rad, double energy2, doub
 
 
 // MOVEMENT
-void Bee::move(sf::Time dt) {                       // move the Bee during a small amount of time
+void Bee::move(sf::Time dt)                         // move the Bee during a small amount of time
+{
     if (mode == "randomly") {
         randomMove(dt);
-    }
-    else if (mode == "targeted") {
+    } else if (mode == "targeted") {
         targetMove(dt);
     }
 }
 
-void Bee::targetMove(sf::Time dt) {                 // move the Bee in a precise direction during a small amount of time
+void Bee::targetMove(sf::Time dt)                   // move the Bee in a precise direction during a small amount of time
+{
     if (avoidanceClock_ <= sf::Time::Zero) {        // if the clock is to Zero or under
         speed = directionTo(target)/directionTo(target).length()*speed.length();
-    }
-    else {
+    } else {
         avoidanceClock_ -= dt;
     }
 
     Vec2d possible_position (getPosition() + speed * dt.asSeconds());
     if (getAppEnv().IsFlyable(possible_position)) {     // if the next position is not rock
         Collider::move(speed * dt.asSeconds());
-    }
-    else {                                              // if the next position is rock
+    } else {                                            // if the next position is rock
         avoidanceClock_ = sf::seconds(getConfig()["moving behaviour"]["target"]["avoidance delay"].toInt());        // launching of the clock
         double beta (0.00);
-        if (bernoulli(0.5) == true) {
+        if (bernoulli(getConfig()["moving behaviour"]["random"]["rotation probability"].toDouble()) == true) {
             beta = PI / 4;
-        }
-        else {
+        } else {
             beta = - PI / 4;
         }
         speed.rotate(beta);
     }
 }
 
-void Bee::randomMove(sf:: Time dt) {                    // move the Bee in a random way during a small amount of time
+void Bee::randomMove(sf:: Time dt)                      // move the Bee in a random way during a small amount of time
+{
 
     if (bernoulli(getConfig()["moving behaviour"]["random"]["rotation probability"].toDouble()) == true) {
         double alphamax (getConfig()["moving behaviour"]["random"]["rotation angle max"].toDouble()) ;
@@ -66,13 +65,11 @@ void Bee::randomMove(sf:: Time dt) {                    // move the Bee in a ran
     Vec2d possible_position (getPosition() + speed * dt.asSeconds());
     if (getAppEnv().IsFlyable(possible_position)) {
         Collider::move(speed * dt.asSeconds());
-    }
-    else {
+    } else {
         double beta (0.00);
-        if (bernoulli(0.5) == true) {
+        if (bernoulli((getConfig()["moving behaviour"]["random"]["rotation probability"].toDouble())) == true) {
             beta = PI / 4;
-        }
-        else {
+        } else {
             beta = - PI / 4;
         }
 
@@ -82,11 +79,13 @@ void Bee::randomMove(sf:: Time dt) {                    // move the Bee in a ran
 
 
 // RELATIVE TO EVOLUTION
-bool Bee::Isdead () const {       // check if the Bee is dead (when it has no energy)
+bool Bee::Isdead () const         // check if the Bee is dead (when it has no energy)
+{
     return (energy == 0.00);
 }
 
-void Bee::drawOn(sf::RenderTarget& target) const {              // draw a Bee
+void Bee::drawOn(sf::RenderTarget& target) const                // draw a Bee
+{
     auto BeeSprite = buildSprite(getPosition(), getRadius(), getAppTexture(getConfig()["texture"].toString()));
     double alpha (speed.angle());
 
@@ -100,83 +99,95 @@ void Bee::drawOn(sf::RenderTarget& target) const {              // draw a Bee
         if (mode == "randomly") {
             auto shape = buildAnnulus(getPosition(), getRadius(), sf::Color::Black, 5.0);
             target.draw(shape);
-        }
-        else if (mode == "targeted") {
+        } else if (mode == "targeted") {
             auto shape2 = buildAnnulus(getPosition(), getRadius(), sf::Color::Blue, 3.0);
             target.draw(shape2);
         }
     }
 }
 
-void Bee::update(sf::Time dt) {                                 // update the Bee's evolution
+void Bee::update(sf::Time dt)                                   // update the Bee's evolution
+{
     action(dt);
     double rate (0.00);
     if (mode == "at rest") {
         rate = getConfig()["energy"]["consumption rates"]["idle"].toDouble();
-    }
-    else {
+    } else {
         move(dt);
         rate = getConfig()["energy"]["consumption rates"]["moving"].toDouble();
     }
 
     if (energy - rate * dt.asSeconds() >= 0.00) {       // update the Bee's energy
         energy -= rate * dt.asSeconds();
+    } else {
+        energy = 0.00;
     }
-    else { energy = 0.00; }
 }
 
 
 // GETTERS
-double Bee::get_energy() const {                        // get the Bee's energy
+double Bee::get_energy() const                          // get the Bee's energy
+{
     return energy;
 }
 
-bool Bee::get_value_memory() const {                    // get the Bee's memory's value
+bool Bee::get_value_memory() const                      // get the Bee's memory's value
+{
     return memory_value;
 }
 
-Vec2d Bee::get_memory() const {                         // get the Bee's memory
+Vec2d Bee::get_memory() const                           // get the Bee's memory
+{
     return memory;
 }
 
-Vec2d Bee::home_position () const {                           // get the Bee's Hive's position
+Vec2d Bee::home_position () const                             // get the Bee's Hive's position
+{
     return Home.getPosition();
 }
 
-double Bee::home_radius() const {                             // get the Bee's Hive's radius
+double Bee::home_radius() const                               // get the Bee's Hive's radius
+{
     return Home.getRadius();
 }
 
 
 // CHANGERS
-void Bee::change_mode(std::string newmode) {            // change the Bee's mode
+void Bee::change_mode(std::string newmode)              // change the Bee's mode
+{
     mode = newmode;
 }
 
-void Bee::change_target(Vec2d const& newtarget) {       // change the Bee's target
+void Bee::change_target(Vec2d const& newtarget)         // change the Bee's target
+{
     target = newtarget;
 }
 
-void Bee::change_memory(Vec2d const& newmemory) {       // change the Bee's memory
+void Bee::change_memory(Vec2d const& newmemory)         // change the Bee's memory
+{
     memory = newmemory;
 }
 
-void Bee::change_value_memory(bool b) {                 // change the Bee's memory's value
+void Bee::change_value_memory(bool b)                   // change the Bee's memory's value
+{
     memory_value = b;
 }
 
-void Bee::gain_energy(double qte) {                     // convert a certain amount of nectar into energy to the Bee
+void Bee::gain_energy(double qte)                       // convert a certain amount of nectar into energy to the Bee
+{
     energy += Home.takeNectar(qte);
 }
 
-void Bee::learnFlowerLocation(const Vec2d& flowerPosition) {        // learn a new Flower's Position
+void Bee::learnFlowerLocation(const Vec2d& flowerPosition)          // learn a new Flower's Position
+{
     memory = flowerPosition;
     memory_value = true;
 }
 
 
 // RELATIVE TO POLLEN
-void Bee::dropPollen(double qte) {                      // drop a certain amount of pollen in the Bee's Hive
+void Bee::dropPollen(double qte)                        // drop a certain amount of pollen in the Bee's Hive
+{
     Home.dropPollen(qte);
 }
 
